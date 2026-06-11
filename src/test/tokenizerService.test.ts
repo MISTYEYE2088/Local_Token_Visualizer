@@ -16,6 +16,7 @@ describe('TokenizerService', () => {
     });
     await service.tokenize('C:\\models\\tokenizer', 'again');
 
+    expect(tokenizer).toHaveBeenCalledWith('hello world', { return_tensor: false });
     expect(load).toHaveBeenCalledTimes(1);
     expect(load).toHaveBeenCalledWith('C:\\models\\tokenizer');
   });
@@ -29,6 +30,20 @@ describe('TokenizerService', () => {
 
     await service.tokenize('C:\\models\\one', 'a');
     await service.tokenize('C:\\models\\two', 'b');
+
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
+  it('clears the cached tokenizer on reset', async () => {
+    const load = vi.fn().mockResolvedValue(vi.fn().mockResolvedValue({
+      input_ids: [1],
+      offset_mapping: [[0, 1]]
+    }));
+    const service = new TokenizerService(load);
+
+    await service.tokenize('C:\\models\\one', 'a');
+    service.reset();
+    await service.tokenize('C:\\models\\one', 'b');
 
     expect(load).toHaveBeenCalledTimes(2);
   });

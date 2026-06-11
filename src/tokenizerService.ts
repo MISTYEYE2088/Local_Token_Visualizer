@@ -8,7 +8,7 @@ export interface TokenizationResult {
 
 export type LoadedTokenizer = (
   text: string,
-  options: { return_offsets_mapping: true }
+  options: { return_tensor: false }
 ) => Promise<{
   input_ids?: unknown[];
   offset_mapping?: OffsetRange[];
@@ -30,7 +30,7 @@ export class TokenizerService {
 
   async tokenize(modelPath: string, text: string): Promise<TokenizationResult> {
     const tokenizer = await this.getTokenizer(modelPath);
-    const output = await tokenizer(text, { return_offsets_mapping: true });
+    const output = await tokenizer(text, { return_tensor: false });
 
     return {
       count: Array.isArray(output.input_ids) ? output.input_ids.length : 0,
