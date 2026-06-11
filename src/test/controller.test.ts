@@ -2,6 +2,27 @@ import { describe, expect, it, vi } from 'vitest';
 import { TokenVisualizerController } from '../controller';
 
 describe('TokenVisualizerController', () => {
+  it('does nothing when there is no active editor', async () => {
+    const getConfig = vi.fn();
+    const statusBar = { update: vi.fn() };
+    const decorations = { apply: vi.fn(), clear: vi.fn() };
+    const tokenizer = { tokenize: vi.fn() };
+    const controller = new TokenVisualizerController(
+      getConfig,
+      tokenizer,
+      decorations,
+      statusBar
+    );
+
+    await controller.refresh(undefined);
+
+    expect(getConfig).not.toHaveBeenCalled();
+    expect(statusBar.update).not.toHaveBeenCalled();
+    expect(decorations.apply).not.toHaveBeenCalled();
+    expect(decorations.clear).not.toHaveBeenCalled();
+    expect(tokenizer.tokenize).not.toHaveBeenCalled();
+  });
+
   it('shows configure status and clears decorations when model path is missing', async () => {
     const editor = { document: { getText: () => 'hello' } };
     const statusBar = { update: vi.fn() };
@@ -26,7 +47,11 @@ describe('TokenVisualizerController', () => {
     const statusBar = { update: vi.fn() };
     const decorations = { apply: vi.fn(), clear: vi.fn() };
     const tokenizer = {
-      tokenize: vi.fn().mockResolvedValue({ count: 1, offsets: [[0, 5]] })
+      tokenize: vi.fn().mockImplementation(async () => {
+        expect(statusBar.update).toHaveBeenCalledTimes(1);
+        expect(statusBar.update).toHaveBeenCalledWith({ kind: 'loading' });
+        return { count: 1, offsets: [[0, 5]] };
+      })
     };
     const controller = new TokenVisualizerController(
       () => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true }),
