@@ -1,0 +1,7 @@
+src/**
+coverage/**
+.vscode-test/**
+docs/**
+*.map
+vitest.config.ts
+.eslintrc.cjs
