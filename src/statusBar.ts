@@ -61,5 +61,7 @@ export class StatusBarController implements vscode.Disposable {
 }
 
 function loadVscode(): typeof vscode {
+  // Lazy-load the extension-host API so pure formatting tests can import this module in Vitest.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require('vscode') as typeof vscode;
 }
