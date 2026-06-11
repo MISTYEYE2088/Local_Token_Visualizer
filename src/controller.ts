@@ -16,11 +16,12 @@ export class TokenVisualizerController {
   ) {}
 
   async refresh(editor: vscode.TextEditor | undefined): Promise<void> {
+    const refreshId = ++this.refreshSequence;
+
     if (!editor) {
       return;
     }
 
-    const refreshId = ++this.refreshSequence;
     const config = this.getConfig();
     const validation = validateModelPath(config.modelPath);
 

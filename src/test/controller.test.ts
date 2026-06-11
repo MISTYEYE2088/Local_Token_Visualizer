@@ -108,6 +108,80 @@ describe('TokenVisualizerController', () => {
     expect(statusBar.update).not.toHaveBeenCalledWith({ kind: 'count', count: 1 });
   });
 
+  it('invalidates pending refreshes when there is no active editor', async () => {
+    const editor = { document: { getText: () => 'hello' } };
+    const getConfig = vi.fn(() => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true }));
+    const statusBar = { update: vi.fn() };
+    const decorations = { apply: vi.fn(), clear: vi.fn() };
+    let resolveTokenize!: (result: TokenizeResult) => void;
+    const pendingTokenize = new Promise<TokenizeResult>((resolve) => {
+      resolveTokenize = resolve;
+    });
+    const tokenizer = {
+      tokenize: vi.fn().mockReturnValue(pendingTokenize)
+    };
+    const controller = new TokenVisualizerController(
+      getConfig,
+      tokenizer,
+      decorations,
+      statusBar
+    );
+
+    const refresh = controller.refresh(editor as never);
+    await controller.refresh(undefined);
+    resolveTokenize({ count: 1, offsets: [[0, 5]] });
+    await refresh;
+
+    expect(getConfig).toHaveBeenCalledTimes(1);
+    expect(tokenizer.tokenize).toHaveBeenCalledTimes(1);
+    expect(statusBar.update).toHaveBeenCalledTimes(1);
+    expect(statusBar.update).toHaveBeenCalledWith({ kind: 'loading' });
+    expect(statusBar.update).not.toHaveBeenCalledWith({ kind: 'count', count: 1 });
+    expect(statusBar.update).not.toHaveBeenCalledWith({ kind: 'error' });
+    expect(decorations.apply).not.toHaveBeenCalled();
+    expect(decorations.clear).not.toHaveBeenCalled();
+  });
+
+  it('ignores stale failures when an older refresh rejects after a newer refresh completes', async () => {
+    const editorA = { document: { getText: () => 'old text' } };
+    const editorB = { document: { getText: () => 'new text' } };
+    const statusBar = { update: vi.fn() };
+    const decorations = { apply: vi.fn(), clear: vi.fn() };
+    let rejectA!: (error: Error) => void;
+    let resolveB!: (result: TokenizeResult) => void;
+    const resultA = new Promise<TokenizeResult>((_, reject) => {
+      rejectA = reject;
+    });
+    const resultB = new Promise<TokenizeResult>((resolve) => {
+      resolveB = resolve;
+    });
+    const tokenizer = {
+      tokenize: vi.fn()
+        .mockReturnValueOnce(resultA)
+        .mockReturnValueOnce(resultB)
+    };
+    const controller = new TokenVisualizerController(
+      () => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true }),
+      tokenizer,
+      decorations,
+      statusBar
+    );
+
+    const refreshA = controller.refresh(editorA as never);
+    const refreshB = controller.refresh(editorB as never);
+    resolveB({ count: 2, offsets: [[10, 20]] });
+    await refreshB;
+    rejectA(new Error('load failed'));
+    await refreshA;
+
+    expect(decorations.apply).toHaveBeenCalledTimes(1);
+    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]]);
+    expect(decorations.clear).not.toHaveBeenCalled();
+    expect(statusBar.update).toHaveBeenCalledTimes(3);
+    expect(statusBar.update).toHaveBeenLastCalledWith({ kind: 'count', count: 2 });
+    expect(statusBar.update).not.toHaveBeenCalledWith({ kind: 'error' });
+  });
+
   it('updates count and clears decorations when highlighting is disabled', async () => {
     const editor = { document: { getText: () => 'hello' } };
     const statusBar = { update: vi.fn() };
