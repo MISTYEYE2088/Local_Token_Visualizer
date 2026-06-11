@@ -6,6 +6,8 @@ import type { StatusBarController } from './statusBar';
 import type { TokenizerService } from './tokenizerService';
 
 export class TokenVisualizerController {
+  private refreshSequence = 0;
+
   constructor(
     private readonly getConfig: () => LocalTokenizerConfig,
     private readonly tokenizerService: Pick<TokenizerService, 'tokenize'>,
@@ -18,6 +20,7 @@ export class TokenVisualizerController {
       return;
     }
 
+    const refreshId = ++this.refreshSequence;
     const config = this.getConfig();
     const validation = validateModelPath(config.modelPath);
 
@@ -32,6 +35,10 @@ export class TokenVisualizerController {
     try {
       const result = await this.tokenizerService.tokenize(validation.path, editor.document.getText());
 
+      if (refreshId !== this.refreshSequence) {
+        return;
+      }
+
       if (config.enableHighlighting) {
         this.decorationManager.apply(editor, result.offsets);
         this.statusBar.update({ kind: 'count', count: result.count });
@@ -40,6 +47,10 @@ export class TokenVisualizerController {
         this.statusBar.update({ kind: 'disabled', count: result.count });
       }
     } catch {
+      if (refreshId !== this.refreshSequence) {
+        return;
+      }
+
       this.decorationManager.clear(editor);
       this.statusBar.update({ kind: 'error' });
     }

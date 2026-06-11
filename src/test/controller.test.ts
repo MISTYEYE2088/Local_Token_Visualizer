@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { TokenVisualizerController } from '../controller';
 
+type TokenizeResult = { count: number; offsets: [number, number][] };
+
 describe('TokenVisualizerController', () => {
   it('does nothing when there is no active editor', async () => {
     const getConfig = vi.fn();
@@ -54,7 +56,7 @@ describe('TokenVisualizerController', () => {
       })
     };
     const controller = new TokenVisualizerController(
-      () => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true }),
+      () => ({ modelPath: '  C:\\models\\tokenizer  ', enableHighlighting: true }),
       tokenizer,
       decorations,
       statusBar
@@ -62,8 +64,48 @@ describe('TokenVisualizerController', () => {
 
     await controller.refresh(editor as never);
 
+    expect(tokenizer.tokenize).toHaveBeenCalledWith('C:\\models\\tokenizer', 'hello');
     expect(statusBar.update).toHaveBeenCalledWith({ kind: 'count', count: 1 });
     expect(decorations.apply).toHaveBeenCalledWith(editor, [[0, 5]]);
+  });
+
+  it('ignores stale results when an older refresh finishes after a newer refresh', async () => {
+    const editorA = { document: { getText: () => 'old text' } };
+    const editorB = { document: { getText: () => 'new text' } };
+    const statusBar = { update: vi.fn() };
+    const decorations = { apply: vi.fn(), clear: vi.fn() };
+    let resolveA!: (result: TokenizeResult) => void;
+    let resolveB!: (result: TokenizeResult) => void;
+    const resultA = new Promise<TokenizeResult>((resolve) => {
+      resolveA = resolve;
+    });
+    const resultB = new Promise<TokenizeResult>((resolve) => {
+      resolveB = resolve;
+    });
+    const tokenizer = {
+      tokenize: vi.fn()
+        .mockReturnValueOnce(resultA)
+        .mockReturnValueOnce(resultB)
+    };
+    const controller = new TokenVisualizerController(
+      () => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true }),
+      tokenizer,
+      decorations,
+      statusBar
+    );
+
+    const refreshA = controller.refresh(editorA as never);
+    const refreshB = controller.refresh(editorB as never);
+    resolveB({ count: 2, offsets: [[10, 20]] });
+    await refreshB;
+    resolveA({ count: 1, offsets: [[0, 5]] });
+    await refreshA;
+
+    expect(decorations.apply).toHaveBeenCalledTimes(1);
+    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]]);
+    expect(statusBar.update).toHaveBeenCalledTimes(3);
+    expect(statusBar.update).toHaveBeenLastCalledWith({ kind: 'count', count: 2 });
+    expect(statusBar.update).not.toHaveBeenCalledWith({ kind: 'count', count: 1 });
   });
 
   it('updates count and clears decorations when highlighting is disabled', async () => {
