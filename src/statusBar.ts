@@ -1,4 +1,4 @@
-import type * as vscode from 'vscode';
+﻿import * as vscode from 'vscode';
 
 export const TOKEN_STATUS_PRIORITY = 100;
 
@@ -6,7 +6,7 @@ export type TokenStatus =
   | { kind: 'count'; count: number }
   | { kind: 'missingPath' }
   | { kind: 'loading' }
-  | { kind: 'disabled'; count: number }
+  | { kind: 'disabled'; count: number; highlightOff?: boolean }
   | { kind: 'error' };
 
 export function formatStatusBarText(status: TokenStatus): string {
@@ -18,7 +18,9 @@ export function formatStatusBarText(status: TokenStatus): string {
     case 'loading':
       return '$(sync~spin) Tokens: Loading';
     case 'disabled':
-      return `$(symbol-numeric) Tokens: ${status.count.toLocaleString('en-US')}`;
+      return status.highlightOff
+        ? `$(symbol-numeric) Tokens: ${status.count.toLocaleString('en-US')} (highlight off)`
+        : `$(symbol-numeric) Tokens: ${status.count.toLocaleString('en-US')}`;
     case 'error':
       return '$(error) Tokens: Error';
   }
@@ -27,10 +29,12 @@ export function formatStatusBarText(status: TokenStatus): string {
 export class StatusBarController implements vscode.Disposable {
   private readonly item: vscode.StatusBarItem;
 
-  constructor() {
-    const vscodeApi = loadVscode();
-    this.item = vscodeApi.window.createStatusBarItem(vscodeApi.StatusBarAlignment.Right, TOKEN_STATUS_PRIORITY);
+  constructor(commandId?: string) {
+    this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, TOKEN_STATUS_PRIORITY);
     this.item.name = 'Local Token Visualizer';
+    if (commandId) {
+      this.item.command = commandId;
+    }
     this.item.show();
   }
 
@@ -53,15 +57,9 @@ export class StatusBarController implements vscode.Disposable {
       case 'error':
         return 'Tokenization failed. Check the configured local tokenizer path.';
       case 'disabled':
-        return 'Highlighting is disabled; token counting is still active.';
+        return 'Highlighting is disabled; token counting is still active. Click to enable.';
       case 'count':
-        return 'Current document token count.';
+        return 'Current document token count. Click to disable highlighting.';
     }
   }
-}
-
-function loadVscode(): typeof vscode {
-  // Lazy-load the extension-host API so pure formatting tests can import this module in Vitest.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  return require('vscode') as typeof vscode;
 }

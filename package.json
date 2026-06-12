@@ -1,68 +1,80 @@
 {
-    "name":  "local-token-visualizer",
-    "displayName":  "Local Token Visualizer",
-    "description":  "Visualize and count LLM tokens offline using a local Hugging Face tokenizer.",
-    "version":  "0.0.1",
-    "publisher":  "local-token-visualizer",
-    "license":  "MIT",
-    "engines":  {
-                    "vscode":  "^1.92.0"
-                },
-    "categories":  [
-                       "Other"
-                   ],
-    "activationEvents":  [
-                             "onStartupFinished",
-                             "onLanguage"
-                         ],
-    "main":  "./out/extension.js",
-    "contributes":  {
-                        "configuration":  {
-                                              "title":  "Local Token Visualizer",
-                                              "properties":  {
-                                                                 "localTokenizer.modelPath":  {
-                                                                                                  "type":  "string",
-                                                                                                  "default":  "C:\\GIT_REPO\\Local_Token_Visualizer\\tokenizer",
-                                                                                                  "description":  "Absolute path to a local Hugging Face tokenizer directory containing tokenizer.json."
-                                                                                              },
-                                                                 "localTokenizer.enableHighlighting":  {
-                                                                                                           "type":  "boolean",
-                                                                                                           "default":  true,
-                                                                                                           "description":  "Enable the looping rainbow token overlay in visible editor ranges."
-                                                                                                       },
-                                                                 "localTokenizer.smallFileThreshold":  {
-                                                                                                           "type":  "number",
-                                                                                                           "default":  50000,
-                                                                                                           "description":  "Files \u003c= this character count skip the debounce delay and tokenize immediately."
-                                                                                                       }
-                                                             }
-                                          }
-                    },
-    "scripts":  {
-                    "compile":  "tsc -p ./",
-                    "watch":  "tsc -watch -p ./",
-                    "lint":  "eslint src --ext ts",
-                    "test":  "vitest run",
-                    "test:watch":  "vitest",
-                    "test:vscode":  "npm run compile \u0026\u0026 node .vscode-test.mjs",
-                    "package":  "vsce package",
-                    "publish:open-vsx":  "ovsx publish"
-                },
-    "dependencies":  {
-                         "@huggingface/transformers":  "^3.7.2"
-                     },
-    "devDependencies":  {
-                            "@types/mocha":  "^10.0.7",
-                            "@types/node":  "^20.14.15",
-                            "@types/vscode":  "1.92.0",
-                            "@typescript-eslint/eslint-plugin":  "^7.18.0",
-                            "@typescript-eslint/parser":  "^7.18.0",
-                            "@vscode/test-electron":  "^2.4.1",
-                            "@vscode/vsce":  "^3.1.0",
-                            "eslint":  "^8.57.0",
-                            "mocha":  "^10.7.3",
-                            "ovsx":  "^0.10.3",
-                            "typescript":  "^5.5.4",
-                            "vitest":  "^2.0.5"
-                        }
+  "name": "local-token-visualizer",
+  "displayName": "Local Token Visualizer",
+  "description": "Visualize and count LLM tokens offline using a local Hugging Face tokenizer.",
+  "version": "0.0.1",
+  "publisher": "local-token-visualizer",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage",
+    "onCommand:local-token-visualizer.toggleHighlighting",
+    "onCommand:local-token-visualizer.selectModelPath"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Local Token Visualizer",
+      "properties": {
+        "localTokenizer.modelPath": {
+          "type": "string",
+          "default": "C:\\GIT_REPO\\Local_Token_Visualizer\\tokenizer",
+          "markdownDescription": "Absolute path to a local Hugging Face tokenizer directory containing `tokenizer.json`. Use the **Local Token Visualizer: Select Tokenizer Directory** command to browse."
+        },
+        "localTokenizer.enableHighlighting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the looping rainbow token overlay in visible editor ranges."
+        },
+        "localTokenizer.smallFileThreshold": {
+          "type": "number",
+          "default": 50000,
+          "description": "Files <= this character count skip the debounce delay and tokenize immediately."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "local-token-visualizer.toggleHighlighting",
+        "title": "Local Token Visualizer: Toggle Highlighting"
+      },
+      {
+        "command": "local-token-visualizer.selectModelPath",
+        "title": "Local Token Visualizer: Select Tokenizer Directory"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:vscode": "npm run compile && node .vscode-test.mjs",
+    "package": "vsce package",
+    "publish:open-vsx": "ovsx publish"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.2"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^20.14.15",
+    "@types/vscode": "1.92.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.1.0",
+    "eslint": "^8.57.0",
+    "mocha": "^10.7.3",
+    "ovsx": "^0.10.3",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
 }

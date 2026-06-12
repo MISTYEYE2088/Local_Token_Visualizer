@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+﻿import { describe, expect, it, vi } from 'vitest';
 import { TokenVisualizerController } from '../controller';
 
 type TokenizeResult = { count: number; offsets: [number, number][] };
@@ -232,7 +232,7 @@ describe('TokenVisualizerController', () => {
 
     await controller.refresh(editor as never);
 
-    expect(statusBar.update).toHaveBeenCalledWith({ kind: 'disabled', count: 1 });
+    expect(statusBar.update).toHaveBeenCalledWith({ kind: 'disabled', count: 1, highlightOff: true });
     expect(decorations.clear).toHaveBeenCalledWith(editor);
     expect(decorations.apply).not.toHaveBeenCalled();
   });
@@ -280,3 +280,4 @@ describe('TokenVisualizerController', () => {
     expect(controller.smallFileThreshold).toBe(50000);
   });
 });
+
