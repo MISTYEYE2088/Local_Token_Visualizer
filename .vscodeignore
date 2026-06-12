@@ -33,3 +33,19 @@ node_modules/**/*.bin
 # Non-Windows ONNX binding directories
 node_modules/**/onnxruntime-node/bin/napi-v3/linux/**
 node_modules/**/onnxruntime-node/bin/napi-v3/darwin/**
+
+# onnxruntime-web not loaded under Node (dist/transformers.node.cjs ignores it)
+node_modules/onnxruntime-web/**
+
+# Non-JS build artifacts
+node_modules/onnxruntime-common/**/*.cc
+node_modules/onnxruntime-common/**/*.h
+node_modules/onnxruntime-common/**/*.proto
+node_modules/onnxruntime-common/**/*.gyp
+
+# TypeScript source not loaded at runtime
+node_modules/**/*.ts
+node_modules/**/*.tsbuildinfo
+
+# Sourcemaps
+node_modules/**/*.map

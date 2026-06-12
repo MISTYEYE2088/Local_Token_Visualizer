@@ -2,7 +2,7 @@
   "name": "local-token-visualizer",
   "displayName": "Local Token Visualizer",
   "description": "Visualize and count LLM tokens offline using a local Hugging Face tokenizer.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "local-token-visualizer",
   "license": "MIT",
   "engines": {
@@ -13,7 +13,9 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onLanguage"
+    "onLanguage",
+    "onCommand:local-token-visualizer.toggleHighlighting",
+    "onCommand:local-token-visualizer.selectModelPath"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -23,15 +25,30 @@
         "localTokenizer.modelPath": {
           "type": "string",
           "default": "C:\\GIT_REPO\\Local_Token_Visualizer\\tokenizer",
-          "description": "Absolute path to a local Hugging Face tokenizer directory containing tokenizer.json."
+          "markdownDescription": "Absolute path to a local Hugging Face tokenizer directory containing `tokenizer.json`. Use the **Local Token Visualizer: Select Tokenizer Directory** command to browse."
         },
         "localTokenizer.enableHighlighting": {
           "type": "boolean",
           "default": true,
           "description": "Enable the looping rainbow token overlay in visible editor ranges."
+        },
+        "localTokenizer.smallFileThreshold": {
+          "type": "number",
+          "default": 50000,
+          "description": "Files <= this character count skip the debounce delay and tokenize immediately."
         }
       }
-    }
+    },
+    "commands": [
+      {
+        "command": "local-token-visualizer.toggleHighlighting",
+        "title": "Local Token Visualizer: Toggle Highlighting"
+      },
+      {
+        "command": "local-token-visualizer.selectModelPath",
+        "title": "Local Token Visualizer: Select Tokenizer Directory"
+      }
+    ]
   },
   "scripts": {
     "compile": "tsc -p ./",
@@ -59,5 +76,9 @@
     "ovsx": "^0.10.3",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/local-token-visualizer/local-token-visualizer"
   }
 }
