@@ -22,7 +22,7 @@
       "properties": {
         "localTokenizer.modelPath": {
           "type": "string",
-          "default": "",
+          "default": "C:\\GIT_REPO\\Local_Token_Visualizer\\tokenizer",
           "description": "Absolute path to a local Hugging Face tokenizer directory containing tokenizer.json."
         },
         "localTokenizer.enableHighlighting": {
