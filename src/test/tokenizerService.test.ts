@@ -59,4 +59,30 @@ describe('TokenizerService', () => {
       offsets: []
     });
   });
+
+  it('derives best-effort offsets from decoded token ids when offset mappings are unavailable', async () => {
+    const tokenizer = Object.assign(
+      vi.fn().mockResolvedValue({
+        input_ids: [101, 7592, 2088, 102, 2088]
+      }),
+      {
+        decode: vi.fn((ids: number[]) => {
+          const decoded: Record<number, string> = {
+            101: '',
+            7592: 'hello',
+            2088: ' world',
+            102: ''
+          };
+          return decoded[ids[0]] ?? '';
+        })
+      }
+    );
+    const load = vi.fn().mockResolvedValue(tokenizer);
+    const service = new TokenizerService(load);
+
+    await expect(service.tokenize('C:\\models\\tokenizer', 'hello world world')).resolves.toEqual({
+      count: 5,
+      offsets: [[0, 5], [5, 11], [11, 17]]
+    });
+  });
 });

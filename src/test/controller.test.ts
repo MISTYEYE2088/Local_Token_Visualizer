@@ -142,6 +142,40 @@ describe('TokenVisualizerController', () => {
     expect(decorations.clear).not.toHaveBeenCalled();
   });
 
+  it('keeps missing-path clearing state when an older refresh resolves later', async () => {
+    const editor = { document: { getText: () => 'hello' } };
+    const getConfig = vi.fn()
+      .mockReturnValueOnce({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true })
+      .mockReturnValueOnce({ modelPath: '', enableHighlighting: true });
+    const statusBar = { update: vi.fn() };
+    const decorations = { apply: vi.fn(), clear: vi.fn() };
+    let resolveTokenize!: (result: TokenizeResult) => void;
+    const pendingTokenize = new Promise<TokenizeResult>((resolve) => {
+      resolveTokenize = resolve;
+    });
+    const tokenizer = {
+      tokenize: vi.fn().mockReturnValue(pendingTokenize)
+    };
+    const controller = new TokenVisualizerController(
+      getConfig,
+      tokenizer,
+      decorations,
+      statusBar
+    );
+
+    const refresh = controller.refresh(editor as never);
+    await controller.refresh(editor as never);
+    resolveTokenize({ count: 1, offsets: [[0, 5]] });
+    await refresh;
+
+    expect(statusBar.update).toHaveBeenCalledWith({ kind: 'missingPath' });
+    expect(statusBar.update).toHaveBeenLastCalledWith({ kind: 'missingPath' });
+    expect(statusBar.update).not.toHaveBeenCalledWith({ kind: 'count', count: 1 });
+    expect(decorations.clear).toHaveBeenCalledTimes(1);
+    expect(decorations.clear).toHaveBeenCalledWith(editor);
+    expect(decorations.apply).not.toHaveBeenCalled();
+  });
+
   it('ignores stale failures when an older refresh rejects after a newer refresh completes', async () => {
     const editorA = { document: { getText: () => 'old text' } };
     const editorB = { document: { getText: () => 'new text' } };

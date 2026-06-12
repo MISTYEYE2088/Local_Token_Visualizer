@@ -6,13 +6,18 @@ export interface TokenizationResult {
   offsets: OffsetRange[];
 }
 
-export type LoadedTokenizer = (
+export type LoadedTokenizer = ((
   text: string,
   options: { return_tensor: false }
 ) => Promise<{
-  input_ids?: unknown[];
+  input_ids?: Array<number | bigint>;
   offset_mapping?: OffsetRange[];
-}>;
+}>) & {
+  decode?: (
+    tokenIds: Array<number | bigint>,
+    options?: { skip_special_tokens?: boolean; clean_up_tokenization_spaces?: boolean }
+  ) => string;
+};
 
 export type TokenizerLoader = (modelPath: string) => Promise<LoadedTokenizer>;
 
@@ -31,10 +36,12 @@ export class TokenizerService {
   async tokenize(modelPath: string, text: string): Promise<TokenizationResult> {
     const tokenizer = await this.getTokenizer(modelPath);
     const output = await tokenizer(text, { return_tensor: false });
+    const inputIds = Array.isArray(output.input_ids) ? output.input_ids : [];
+    const offsetMapping = normalizeOffsetMapping(output.offset_mapping);
 
     return {
-      count: Array.isArray(output.input_ids) ? output.input_ids.length : 0,
-      offsets: Array.isArray(output.offset_mapping) ? output.offset_mapping : []
+      count: inputIds.length,
+      offsets: offsetMapping ?? deriveOffsetsFromDecodedTokens(text, inputIds, tokenizer)
     };
   }
 
@@ -52,4 +59,72 @@ export class TokenizerService {
     this.cachedPath = modelPath;
     return this.cachedTokenizer;
   }
+}
+
+function normalizeOffsetMapping(offsetMapping: OffsetRange[] | undefined): OffsetRange[] | undefined {
+  if (!Array.isArray(offsetMapping)) {
+    return undefined;
+  }
+
+  return offsetMapping.filter(
+    (offset): offset is OffsetRange =>
+      Array.isArray(offset) &&
+      offset.length === 2 &&
+      typeof offset[0] === 'number' &&
+      typeof offset[1] === 'number' &&
+      offset[0] < offset[1]
+  );
+}
+
+function deriveOffsetsFromDecodedTokens(
+  text: string,
+  inputIds: Array<number | bigint>,
+  tokenizer: LoadedTokenizer
+): OffsetRange[] {
+  if (!tokenizer.decode) {
+    return [];
+  }
+
+  const offsets: OffsetRange[] = [];
+  let searchStart = 0;
+
+  for (const inputId of inputIds) {
+    const decoded = tokenizer.decode([inputId], {
+      skip_special_tokens: true,
+      clean_up_tokenization_spaces: false
+    });
+    const offset = findNextTokenOffset(text, decoded, searchStart);
+
+    if (!offset) {
+      continue;
+    }
+
+    offsets.push(offset);
+    searchStart = offset[1];
+  }
+
+  return offsets;
+}
+
+function findNextTokenOffset(text: string, decoded: string, searchStart: number): OffsetRange | undefined {
+  if (decoded.length === 0) {
+    return undefined;
+  }
+
+  const exactStart = text.indexOf(decoded, searchStart);
+  if (exactStart !== -1) {
+    return [exactStart, exactStart + decoded.length];
+  }
+
+  const trimmed = decoded.trim();
+  if (trimmed.length === 0 || trimmed === decoded) {
+    return undefined;
+  }
+
+  const trimmedStart = text.indexOf(trimmed, searchStart);
+  if (trimmedStart === -1) {
+    return undefined;
+  }
+
+  return [trimmedStart, trimmedStart + trimmed.length];
 }
