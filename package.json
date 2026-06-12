@@ -76,5 +76,9 @@
     "ovsx": "^0.10.3",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/local-token-visualizer/local-token-visualizer"
   }
 }
