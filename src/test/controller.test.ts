@@ -256,4 +256,27 @@ describe('TokenVisualizerController', () => {
     expect(statusBar.update).toHaveBeenCalledWith({ kind: 'error' });
     expect(decorations.clear).toHaveBeenCalledWith(editor);
   });
+
+  it('stores small file threshold on the controller instance', () => {
+    const controller = new TokenVisualizerController(
+      () => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true }),
+      { tokenize: vi.fn() },
+      { apply: vi.fn(), clear: vi.fn() },
+      { update: vi.fn() },
+      50000
+    );
+
+    expect(controller.smallFileThreshold).toBe(50000);
+  });
+
+  it('defaults small file threshold to 50000 when not provided', () => {
+    const controller = new TokenVisualizerController(
+      () => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true }),
+      { tokenize: vi.fn() },
+      { apply: vi.fn(), clear: vi.fn() },
+      { update: vi.fn() }
+    );
+
+    expect(controller.smallFileThreshold).toBe(50000);
+  });
 });
