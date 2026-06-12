@@ -23,13 +23,13 @@ node_modules/ovsx/**
 node_modules/typescript/**
 node_modules/vitest/**
 node_modules/@vscode/vsce/**
-node_modules/onnxruntime-*/**
-node_modules/@huggingface/transformers/node_modules/onnxruntime-*/**
 
-# ONNX native blobs (not needed for tokenizer-only usage)
-node_modules/**/*.node
+# Keep only Windows ONNX native binaries
 node_modules/**/*.wasm
-node_modules/**/*.dll
 node_modules/**/*.so
 node_modules/**/*.dylib
 node_modules/**/*.bin
+
+# Non-Windows ONNX binding directories
+node_modules/**/onnxruntime-node/bin/napi-v3/linux/**
+node_modules/**/onnxruntime-node/bin/napi-v3/darwin/**
