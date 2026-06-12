@@ -2,7 +2,7 @@
   "name": "local-token-visualizer",
   "displayName": "Local Token Visualizer",
   "description": "Visualize and count LLM tokens offline using a local Hugging Face tokenizer.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "local-token-visualizer",
   "license": "MIT",
   "engines": {
