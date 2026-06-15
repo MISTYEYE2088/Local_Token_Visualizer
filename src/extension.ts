@@ -1,4 +1,4 @@
-﻿import * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import { readLocalTokenizerConfig } from './configuration';
 import { TokenVisualizerController, DEFAULT_SMALL_FILE_THRESHOLD } from './controller';
 import { Debouncer } from './debounce';
@@ -15,8 +15,15 @@ export function activate(context: vscode.ExtensionContext): void {
   const decorations = new DecorationManager();
   const tokenizerService = new TokenizerService();
   const debouncer = new Debouncer(REFRESH_DELAY_MS);
+  const bundledTokenizerPath = vscode.Uri.joinPath(context.extensionUri, 'tokenizer').fsPath;
   const controller = new TokenVisualizerController(
-    () => readLocalTokenizerConfig(vscode.workspace.getConfiguration('localTokenizer')),
+    () => {
+      const config = readLocalTokenizerConfig(vscode.workspace.getConfiguration('localTokenizer'));
+      return {
+        ...config,
+        modelPath: config.modelPath || bundledTokenizerPath
+      };
+    },
     tokenizerService,
     decorations,
     statusBar,

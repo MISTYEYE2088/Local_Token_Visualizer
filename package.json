@@ -24,7 +24,7 @@
       "properties": {
         "localTokenizer.modelPath": {
           "type": "string",
-          "default": "C:\\GIT_REPO\\Local_Token_Visualizer\\tokenizer",
+          "default": "",
           "markdownDescription": "Absolute path to a local Hugging Face tokenizer directory containing `tokenizer.json`. Use the **Local Token Visualizer: Select Tokenizer Directory** command to browse."
         },
         "localTokenizer.enableHighlighting": {
@@ -79,6 +79,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/local-token-visualizer/local-token-visualizer"
+    "url": "https://github.com/MISTYEYE2088/Local_Token_Visualizer"
   }
 }
