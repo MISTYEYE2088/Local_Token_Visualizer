@@ -75,7 +75,7 @@
     "mocha": "^10.7.3",
     "ovsx": "^0.10.3",
     "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "vitest": "^3.2.6"
   },
   "repository": {
     "type": "git",
