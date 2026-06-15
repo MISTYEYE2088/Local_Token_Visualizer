@@ -40,13 +40,22 @@ jobs:
           npm test
           npm run lint
 
+      - name: Check Open VSX token
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:OVSX_PAT)) {
+            throw "Missing OVSX_PAT repository secret. Add it in GitHub under Settings > Secrets and variables > Actions."
+          }
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
       - name: Ensure Open VSX namespace exists
         continue-on-error: true
-        run: npx ovsx create-namespace local-token-visualizer -p $env:OVSX_PAT
+        run: npx ovsx create-namespace local-token-visualizer --pat "$env:OVSX_PAT"
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
       - name: Publish to Open VSX
-        run: npx ovsx publish -p $env:OVSX_PAT
+        run: npx ovsx publish --pat "$env:OVSX_PAT"
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
