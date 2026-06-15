@@ -2,6 +2,7 @@ src/**
 coverage/**
 .vscode-test/**
 docs/**
+.github/**
 *.map
 vitest.config.ts
 .eslintrc.cjs
