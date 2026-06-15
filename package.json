@@ -2,7 +2,7 @@
   "name": "local-token-visualizer",
   "displayName": "Local Token Visualizer",
   "description": "Visualize and count LLM tokens offline using a local Hugging Face tokenizer.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "local-token-visualizer",
   "license": "MIT",
   "engines": {
@@ -65,7 +65,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.7",
-    "@types/node": "^20.14.15",
+    "@types/node": "^24.0.0",
     "@types/vscode": "1.92.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
@@ -76,6 +76,9 @@
     "ovsx": "^0.10.3",
     "typescript": "^5.5.4",
     "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "serialize-javascript": "7.0.5"
   },
   "repository": {
     "type": "git",
