@@ -1,9 +1,11 @@
 name: Publish Open VSX
 
 on:
+  push:
+    branches:
+      - main
+      - codex/v0.0.2
   workflow_dispatch:
-  release:
-    types: [published]
 
 permissions:
   contents: read
