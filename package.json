@@ -75,7 +75,7 @@
     "mocha": "^10.7.3",
     "ovsx": "^0.10.3",
     "typescript": "^5.5.4",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "serialize-javascript": "7.0.5"
