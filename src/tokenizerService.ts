@@ -1,4 +1,6 @@
-import { AutoTokenizer, env } from '@huggingface/transformers';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import { Tokenizer } from '@huggingface/tokenizers';
 import type { OffsetRange } from './decorations';
 
 export interface TokenizationResult {
@@ -22,9 +24,30 @@ export type LoadedTokenizer = ((
 export type TokenizerLoader = (modelPath: string) => Promise<LoadedTokenizer>;
 
 export async function loadLocalTokenizer(modelPath: string): Promise<LoadedTokenizer> {
-  env.allowLocalModels = true;
-  env.allowRemoteModels = false;
-  return AutoTokenizer.from_pretrained(modelPath, { local_files_only: true }) as Promise<LoadedTokenizer>;
+  const tokenizerJson = JSON.parse(await fs.readFile(path.join(modelPath, 'tokenizer.json'), 'utf8'));
+  const tokenizerConfig = await readOptionalJson(path.join(modelPath, 'tokenizer_config.json'));
+  const tokenizer = new Tokenizer(tokenizerJson, tokenizerConfig);
+
+  return Object.assign(
+    async (text: string) => ({ input_ids: tokenizer.encode(text).ids }),
+    {
+      decode: (
+        tokenIds: Array<number | bigint>,
+        options?: { skip_special_tokens?: boolean; clean_up_tokenization_spaces?: boolean }
+      ) => tokenizer.decode(tokenIds as number[], options)
+    }
+  );
+}
+
+async function readOptionalJson(filePath: string): Promise<Record<string, unknown>> {
+  try {
+    return JSON.parse(await fs.readFile(filePath, 'utf8'));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return {};
+    }
+    throw error;
+  }
 }
 
 export class TokenizerService {
