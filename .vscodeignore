@@ -1,52 +1,8 @@
-src/**
-coverage/**
-.vscode-test/**
-docs/**
-.github/**
-*.map
-vitest.config.ts
-.eslintrc.cjs
-node_modules/.cache/**
-node_modules/**/test/**
-node_modules/**/tests/**
-node_modules/**/docs/**
-node_modules/**/example/**
-node_modules/**/examples/**
-node_modules/**/__tests__/**
-node_modules/.bin/**
-node_modules/@types/**
-node_modules/@eslint/**
-node_modules/@typescript-eslint/**
-node_modules/@vscode/**
-node_modules/eslint/**
-node_modules/mocha/**
-node_modules/ovsx/**
-node_modules/typescript/**
-node_modules/vitest/**
-node_modules/@vscode/vsce/**
-
-# Keep only Windows ONNX native binaries
-node_modules/**/*.wasm
-node_modules/**/*.so
-node_modules/**/*.dylib
-node_modules/**/*.bin
-
-# Non-Windows ONNX binding directories
-node_modules/**/onnxruntime-node/bin/napi-v3/linux/**
-node_modules/**/onnxruntime-node/bin/napi-v3/darwin/**
-
-# onnxruntime-web not loaded under Node (dist/transformers.node.cjs ignores it)
-node_modules/onnxruntime-web/**
-
-# Non-JS build artifacts
-node_modules/onnxruntime-common/**/*.cc
-node_modules/onnxruntime-common/**/*.h
-node_modules/onnxruntime-common/**/*.proto
-node_modules/onnxruntime-common/**/*.gyp
-
-# TypeScript source not loaded at runtime
-node_modules/**/*.ts
-node_modules/**/*.tsbuildinfo
-
-# Sourcemaps
-node_modules/**/*.map
+# Ship only dist/ (single esbuild bundle), the bundled tokenizer, and metadata.
+**
+!dist/extension.js
+!tokenizer/**
+!package.json
+!README.md
+!LICENSE
+!screenshot.png

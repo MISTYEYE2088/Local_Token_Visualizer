@@ -54,23 +54,8 @@ When highlighting is off, the status bar shows `Tokens: N (highlight off)`.
 
 ## Package Size Notes
 
-The extension currently uses `@huggingface/transformers` for local tokenizer loading. Even tokenizer-only usage imports the package's Node ONNX backend at module load time, so the matching `onnxruntime-node` native files must remain packaged for this dependency to load correctly.
+The extension uses `@huggingface/tokenizers`, a zero-dependency, pure JavaScript tokenizer, and ships as a single esbuild bundle (`dist/extension.js`). No `node_modules`, native ONNX runtime, or `onnxruntime-node` binaries are packaged, which keeps the VSIX at roughly 3.7 MB instead of roughly 51 MB.
 
-The package excludes unused debug/source artifacts and the browser ONNX runtime to keep the VSIX smaller. A future version can shrink further by replacing `@huggingface/transformers` with a tokenizer-only dependency.
+Almost all of what remains is the bundled default `tokenizer/tokenizer.json` (about 3.5 MB compressed). Users who set `localTokenizer.modelPath` to their own tokenizer directory do not need it.
 
-## Local Development
-
-```powershell
-npm install
-npm run compile
-npm test
-npm run lint
-npm run test:vscode
-npm run package
-```
-
-Install the packaged VSIX locally:
-
-```powershell
-code --install-extension C:\GIT_REPO\Local_Token_Visualizer\local-token-visualizer-0.0.2.vsix
-```
+Build the package with `npm run package` (this runs `npm run bundle` automatically).

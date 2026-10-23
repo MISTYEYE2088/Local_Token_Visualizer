@@ -17,7 +17,7 @@
     "onCommand:local-token-visualizer.toggleHighlighting",
     "onCommand:local-token-visualizer.selectModelPath"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
       "title": "Local Token Visualizer",
@@ -51,19 +51,19 @@
     ]
   },
   "scripts": {
+    "vscode:prepublish": "npm run bundle",
     "compile": "tsc -p ./",
+    "bundle": "esbuild src/extension.ts --bundle --platform=node --target=node20 --format=cjs --external:vscode --minify --outfile=dist/extension.js",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:vscode": "npm run compile && node .vscode-test.mjs",
+    "test:vscode": "npm run compile && npm run bundle && node .vscode-test.mjs",
     "package": "vsce package",
     "publish:open-vsx": "ovsx publish"
   },
-  "dependencies": {
-    "@huggingface/transformers": "^3.7.2"
-  },
   "devDependencies": {
+    "@huggingface/tokenizers": "^0.2.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "^24.0.0",
     "@types/vscode": "1.92.0",
@@ -71,6 +71,7 @@
     "@typescript-eslint/parser": "^7.18.0",
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^3.1.0",
+    "esbuild": "^0.28.2",
     "eslint": "^8.57.0",
     "mocha": "^10.7.3",
     "ovsx": "^0.10.3",
