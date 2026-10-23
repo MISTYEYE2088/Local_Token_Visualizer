@@ -29,7 +29,9 @@ export async function loadLocalTokenizer(modelPath: string): Promise<LoadedToken
   const tokenizer = new Tokenizer(tokenizerJson, tokenizerConfig);
 
   return Object.assign(
-    async (text: string) => ({ input_ids: tokenizer.encode(text).ids }),
+    // Count only the text's own tokens so the number matches the highlighted ranges
+    // (some tokenizers would otherwise add a BOS/EOS token).
+    async (text: string) => ({ input_ids: tokenizer.encode(text, { add_special_tokens: false }).ids }),
     {
       decode: (
         tokenIds: Array<number | bigint>,
@@ -52,7 +54,7 @@ async function readOptionalJson(filePath: string): Promise<Record<string, unknow
 
 export class TokenizerService {
   private cachedPath: string | undefined;
-  private cachedTokenizer: LoadedTokenizer | undefined;
+  private cachedTokenizer: Promise<LoadedTokenizer> | undefined;
 
   constructor(private readonly loadTokenizer: TokenizerLoader = loadLocalTokenizer) {}
 
@@ -73,14 +75,21 @@ export class TokenizerService {
     this.cachedTokenizer = undefined;
   }
 
-  private async getTokenizer(modelPath: string): Promise<LoadedTokenizer> {
+  // Overlapping refreshes share one in-flight load instead of each parsing the same large file.
+  private getTokenizer(modelPath: string): Promise<LoadedTokenizer> {
     if (this.cachedPath === modelPath && this.cachedTokenizer) {
       return this.cachedTokenizer;
     }
 
-    this.cachedTokenizer = await this.loadTokenizer(modelPath);
+    const loading = this.loadTokenizer(modelPath);
     this.cachedPath = modelPath;
-    return this.cachedTokenizer;
+    this.cachedTokenizer = loading;
+    loading.catch(() => {
+      if (this.cachedTokenizer === loading) {
+        this.reset();
+      }
+    });
+    return loading;
   }
 }
 

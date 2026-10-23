@@ -1,7 +1,7 @@
 # Ship only dist/ (single esbuild bundle), the bundled tokenizer, and metadata.
 **
 !dist/extension.js
-!tokenizer/**
+!tokenizers/**
 !package.json
 !README.md
 !LICENSE
