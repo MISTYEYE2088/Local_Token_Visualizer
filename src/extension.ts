@@ -1,28 +1,37 @@
 import * as vscode from 'vscode';
-import { readLocalTokenizerConfig } from './configuration';
+import * as path from 'path';
+import { labelForModel } from './catalog';
+import { readLocalTokenizerConfig, type LocalTokenizerConfig } from './configuration';
 import { TokenVisualizerController, DEFAULT_SMALL_FILE_THRESHOLD } from './controller';
 import { Debouncer } from './debounce';
 import { DecorationManager } from './decorations';
+import { createRefreshScheduler } from './refreshScheduler';
 import { StatusBarController } from './statusBar';
+import { TokenizerMenu, SELECT_MODEL_PATH_COMMAND, SELECT_TOKENIZER_COMMAND } from './tokenizerMenu';
 import { TokenizerService } from './tokenizerService';
+import { TokenizerStore } from './tokenizerStore';
 
 const REFRESH_DELAY_MS = 300;
 const TOGGLE_COMMAND = 'local-token-visualizer.toggleHighlighting';
-const SELECT_MODEL_PATH_COMMAND = 'local-token-visualizer.selectModelPath';
 
 export function activate(context: vscode.ExtensionContext): void {
-  const statusBar = new StatusBarController(TOGGLE_COMMAND);
+  const statusBar = new StatusBarController(TOGGLE_COMMAND, SELECT_TOKENIZER_COMMAND);
   const decorations = new DecorationManager();
   const tokenizerService = new TokenizerService();
   const debouncer = new Debouncer(REFRESH_DELAY_MS);
-  const bundledTokenizerPath = vscode.Uri.joinPath(context.extensionUri, 'tokenizer').fsPath;
+  const store = new TokenizerStore(
+    vscode.Uri.joinPath(context.extensionUri, 'tokenizers').fsPath,
+    vscode.Uri.joinPath(context.globalStorageUri, 'tokenizers').fsPath
+  );
   const controller = new TokenVisualizerController(
-    () => {
+    async (): Promise<LocalTokenizerConfig> => {
       const config = readLocalTokenizerConfig(vscode.workspace.getConfiguration('localTokenizer'));
-      return {
-        ...config,
-        modelPath: config.modelPath || bundledTokenizerPath
-      };
+      if (config.modelPath) {
+        return { ...config, modelLabel: `Custom folder (${path.basename(config.modelPath)})` };
+      }
+
+      const resolved = await store.resolve(config.model);
+      return { ...config, modelPath: resolved?.path ?? '', modelLabel: labelForModel(config.model) };
     },
     tokenizerService,
     decorations,
@@ -30,19 +39,18 @@ export function activate(context: vscode.ExtensionContext): void {
     DEFAULT_SMALL_FILE_THRESHOLD
   );
 
-  const scheduleRefresh = (editor = vscode.window.activeTextEditor): void => {
-    const isSmallFile = editor
-      ? editor.document.getText().length < controller.smallFileThreshold
-      : false;
+  const menu = new TokenizerMenu(store, () => {
+    tokenizerService.reset();
+    scheduleRefresh(vscode.window.activeTextEditor);
+  });
 
-    if (isSmallFile) {
-      void controller.refresh(editor);
-    } else {
-      debouncer.schedule(() => {
-        void controller.refresh(editor);
-      });
-    }
-  };
+  const scheduleRefresh = createRefreshScheduler<vscode.TextEditor>({
+    getActiveEditor: () => vscode.window.activeTextEditor,
+    getTextLength: (editor) => editor.document.getText().length,
+    refresh: (editor) => void controller.refresh(editor),
+    debouncer,
+    smallFileThreshold: controller.smallFileThreshold
+  });
 
   context.subscriptions.push(
     statusBar,
@@ -66,25 +74,12 @@ export function activate(context: vscode.ExtensionContext): void {
       const current = config.get<boolean>('enableHighlighting', true);
       void config.update('enableHighlighting', !current, vscode.ConfigurationTarget.Global);
     }),
-    vscode.commands.registerCommand(SELECT_MODEL_PATH_COMMAND, async () => {
-      const folders = await vscode.window.showOpenDialog({
-        canSelectFolders: true,
-        canSelectFiles: false,
-        canSelectMany: false,
-        openLabel: 'Select Tokenizer Directory',
-        title: 'Local Token Visualizer: Select Tokenizer Directory'
-      });
-
-      if (folders && folders.length > 0) {
-        const config = vscode.workspace.getConfiguration('localTokenizer');
-        await config.update('modelPath', folders[0].fsPath, vscode.ConfigurationTarget.Global);
-        tokenizerService.reset();
-        scheduleRefresh(vscode.window.activeTextEditor);
-      }
-    })
+    vscode.commands.registerCommand(SELECT_TOKENIZER_COMMAND, () => menu.show()),
+    vscode.commands.registerCommand(SELECT_MODEL_PATH_COMMAND, () => menu.browseForFolder())
   );
 
   scheduleRefresh(vscode.window.activeTextEditor);
+  void menu.ensureCurrentModel();
 }
 
 export function deactivate(): void {}

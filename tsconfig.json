@@ -17,7 +17,8 @@
       "node",
       "vscode",
       "mocha"
-    ]
+    ],
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*.ts"

@@ -253,7 +253,7 @@ describe('TokenVisualizerController', () => {
 
     await expect(controller.refresh(editor as never)).resolves.toBeUndefined();
 
-    expect(statusBar.update).toHaveBeenCalledWith({ kind: 'error' });
+    expect(statusBar.update).toHaveBeenCalledWith({ kind: 'error', message: 'load failed' });
     expect(decorations.clear).toHaveBeenCalledWith(editor);
   });
 

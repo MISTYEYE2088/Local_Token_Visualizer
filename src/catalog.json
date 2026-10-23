@@ -1,0 +1,89 @@
+{
+  "defaultModel": "gpt-4o",
+  "tokenizers": [
+    {
+      "id": "gpt-4o",
+      "label": "GPT-4o / o-series (o200k_base)",
+      "vendor": "OpenAI",
+      "repo": "Xenova/gpt-4o",
+      "revision": "7956d98f2a83b2751a98ea7136fdf7fe6cf54e69",
+      "bundled": true,
+      "description": "GPT-4o, GPT-4.1, o1, o3",
+      "license": "MIT",
+      "sha256": "43a3ad4618a6a938f8c2614154ea10c31ad53a62d5683ae0b0e6133575cef07e"
+    },
+    {
+      "id": "o200k-harmony",
+      "label": "gpt-oss (o200k_harmony)",
+      "vendor": "OpenAI",
+      "repo": "openai/gpt-oss-20b",
+      "revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+      "bundled": true,
+      "description": "gpt-oss models and the Harmony chat format",
+      "license": "Apache-2.0",
+      "sha256": "0614fe83cadab421296e664e1f48f4261fa8fef6e03e63bb75c20f38e37d07d3"
+    },
+    {
+      "id": "gemma-4",
+      "label": "Gemma 4 (262k vocabulary)",
+      "vendor": "Google",
+      "repo": "google/gemma-4-E2B-it",
+      "revision": "3e22461f65e89153144f8adb70e3b8c2cc9845a7",
+      "bundled": true,
+      "description": "Gemma 4 family (closest public match to Gemini)",
+      "license": "Apache-2.0",
+      "note": "Gemini's own tokenizer is not public, so counts for Gemini models are approximate.",
+      "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f"
+    },
+    {
+      "id": "gpt-4",
+      "label": "GPT-4 / GPT-3.5 (cl100k_base)",
+      "vendor": "OpenAI",
+      "repo": "Xenova/gpt-4",
+      "revision": "1d9f1f1b1fae88c0e4df1dab0a397f8de6229075",
+      "bundled": false,
+      "description": "GPT-4, GPT-4 Turbo, GPT-3.5 Turbo, text-embedding-3",
+      "license": "tiktoken vocabulary (MIT)"
+    },
+    {
+      "id": "llama-3",
+      "label": "Llama 3.1",
+      "vendor": "Meta",
+      "repo": "Xenova/Meta-Llama-3.1-Tokenizer",
+      "revision": "d49ea33e96b3fcf8738bb79ff9d85da81742fa82",
+      "bundled": false,
+      "description": "Llama 3.x family",
+      "license": "Llama 3.1 Community License"
+    },
+    {
+      "id": "qwen-2.5",
+      "label": "Qwen 2.5",
+      "vendor": "Alibaba",
+      "repo": "Qwen/Qwen2.5-0.5B",
+      "revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+      "bundled": false,
+      "description": "Qwen 2.5 / Qwen 3 family",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "deepseek-v3",
+      "label": "DeepSeek V3",
+      "vendor": "DeepSeek",
+      "repo": "deepseek-ai/DeepSeek-V3",
+      "revision": "e815299b0bcbac849fa540c768ef21845365c9eb",
+      "bundled": false,
+      "description": "DeepSeek V3 / R1",
+      "license": "DeepSeek Model License"
+    },
+    {
+      "id": "mistral-v3",
+      "label": "Mistral (v3)",
+      "vendor": "Mistral AI",
+      "repo": "Xenova/mistral-tokenizer-v3",
+      "revision": "b251f946a5b6b16c36963ea8848611bce67dfbf1",
+      "bundled": false,
+      "description": "Mistral 7B v0.3, Mixtral",
+      "license": "Apache-2.0"
+    }
+  ]
+}

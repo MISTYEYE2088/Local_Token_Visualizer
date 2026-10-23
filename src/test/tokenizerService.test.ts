@@ -85,4 +85,30 @@ describe('TokenizerService', () => {
       offsets: [[0, 5], [5, 11], [11, 17]]
     });
   });
+
+  it('shares one in-flight load between overlapping tokenize calls', async () => {
+    let finishLoading!: (tokenizer: ReturnType<typeof vi.fn>) => void;
+    const load = vi.fn(
+      () => new Promise<never>((resolve) => { finishLoading = resolve as never; })
+    );
+    const service = new TokenizerService(load);
+
+    const first = service.tokenize('C:\\models\\big', 'a');
+    const second = service.tokenize('C:\\models\\big', 'b');
+    finishLoading(vi.fn().mockResolvedValue({ input_ids: [1], offset_mapping: [[0, 1]] }));
+
+    await expect(Promise.all([first, second])).resolves.toHaveLength(2);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries loading after a failed load instead of caching the failure', async () => {
+    const load = vi.fn()
+      .mockRejectedValueOnce(new Error('disk hiccup'))
+      .mockResolvedValue(vi.fn().mockResolvedValue({ input_ids: [1], offset_mapping: [[0, 1]] }));
+    const service = new TokenizerService(load);
+
+    await expect(service.tokenize('C:\\models\\one', 'a')).rejects.toThrow('disk hiccup');
+    await expect(service.tokenize('C:\\models\\one', 'a')).resolves.toMatchObject({ count: 1 });
+    expect(load).toHaveBeenCalledTimes(2);
+  });
 });

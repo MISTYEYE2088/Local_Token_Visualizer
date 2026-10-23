@@ -2,7 +2,7 @@
   "name": "local-token-visualizer",
   "displayName": "Local Token Visualizer",
   "description": "Visualize and count LLM tokens offline using a local Hugging Face tokenizer.",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "publisher": "local-token-visualizer",
   "license": "MIT",
   "engines": {
@@ -15,17 +15,23 @@
     "onStartupFinished",
     "onLanguage",
     "onCommand:local-token-visualizer.toggleHighlighting",
-    "onCommand:local-token-visualizer.selectModelPath"
+    "onCommand:local-token-visualizer.selectModelPath",
+    "onCommand:local-token-visualizer.selectTokenizer"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
       "title": "Local Token Visualizer",
       "properties": {
+        "localTokenizer.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "markdownDescription": "Tokenizer to use: a built-in or downloadable id such as `gpt-4o`, `gpt-4`, `claude-legacy`, `gemma-2`, `llama-3`, or any Hugging Face repository id like `Qwen/Qwen2.5-0.5B`. Use **Local Token Visualizer: Select Tokenizer** to choose from a menu instead of typing."
+        },
         "localTokenizer.modelPath": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Absolute path to a local Hugging Face tokenizer directory containing `tokenizer.json`. Use the **Local Token Visualizer: Select Tokenizer Directory** command to browse."
+          "markdownDescription": "Optional. Absolute path to a local tokenizer directory containing `tokenizer.json`. When set, it overrides `localTokenizer.model`. Leave empty to use the tokenizer chosen from the menu."
         },
         "localTokenizer.enableHighlighting": {
           "type": "boolean",
@@ -41,26 +47,32 @@
     },
     "commands": [
       {
+        "command": "local-token-visualizer.selectTokenizer",
+        "title": "Local Token Visualizer: Select Tokenizer"
+      },
+      {
         "command": "local-token-visualizer.toggleHighlighting",
         "title": "Local Token Visualizer: Toggle Highlighting"
       },
       {
         "command": "local-token-visualizer.selectModelPath",
-        "title": "Local Token Visualizer: Select Tokenizer Directory"
+        "title": "Local Token Visualizer: Use Local Tokenizer Folder"
       }
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run bundle",
+    "vscode:prepublish": "npm run fetch-tokenizers && npm run bundle",
     "compile": "tsc -p ./",
     "bundle": "esbuild src/extension.ts --bundle --platform=node --target=node20 --format=cjs --external:vscode --minify --outfile=dist/extension.js",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:vscode": "npm run compile && npm run bundle && node .vscode-test.mjs",
+    "test:vscode": "npm run compile && npm run fetch-tokenizers && npm run bundle && node .vscode-test.mjs",
     "package": "vsce package",
-    "publish:open-vsx": "ovsx publish"
+    "publish:open-vsx": "ovsx publish",
+    "fetch-tokenizers": "node scripts/fetch-tokenizers.mjs",
+    "pretest": "npm run fetch-tokenizers"
   },
   "devDependencies": {
     "@huggingface/tokenizers": "^0.2.0",

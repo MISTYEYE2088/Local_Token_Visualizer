@@ -15,7 +15,8 @@ describe('readLocalTokenizerConfig', () => {
 
     expect(readLocalTokenizerConfig(config)).toEqual({
       modelPath: 'C:\\models\\llama-tokenizer',
-      enableHighlighting: false
+      enableHighlighting: false,
+      model: 'gpt-4o'
     });
   });
 
@@ -28,8 +29,20 @@ describe('readLocalTokenizerConfig', () => {
 
     expect(readLocalTokenizerConfig(config)).toEqual({
       modelPath: 'C:\\models\\qwen',
-      enableHighlighting: true
+      enableHighlighting: true,
+      model: 'gpt-4o'
     });
+  });
+
+  it('reads the selected model and falls back to the default when it is blank', () => {
+    const withModel = (model: string) => ({
+      get<T>(key: string, fallback: T): T {
+        return (key === 'model' ? model : fallback) as T;
+      }
+    });
+
+    expect(readLocalTokenizerConfig(withModel(' Qwen/Qwen2.5-0.5B ')).model).toBe('Qwen/Qwen2.5-0.5B');
+    expect(readLocalTokenizerConfig(withModel('   ')).model).toBe('gpt-4o');
   });
 });
 
