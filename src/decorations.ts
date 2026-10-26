@@ -2,6 +2,11 @@ import type * as vscode from 'vscode';
 
 export type OffsetRange = readonly [number, number];
 
+export interface MultiTokenChar {
+  range: OffsetRange;
+  tokenCount: number;
+}
+
 export const PASTEL_TOKEN_COLORS = [
   { dark: 'rgba(102, 194, 165, 0.25)', light: 'rgba(102, 194, 165, 0.4)' },
   { dark: 'rgba(252, 141, 98, 0.25)', light: 'rgba(252, 141, 98, 0.4)' },
@@ -9,6 +14,28 @@ export const PASTEL_TOKEN_COLORS = [
   { dark: 'rgba(231, 138, 195, 0.25)', light: 'rgba(231, 138, 195, 0.4)' },
   { dark: 'rgba(166, 216, 84, 0.25)', light: 'rgba(166, 216, 84, 0.4)' }
 ] as const;
+
+// Distinct from the pastel cycle so characters split across tokens stand out.
+export const MULTI_TOKEN_COLOR = {
+  dark: { background: 'rgba(255, 70, 70, 0.35)', border: 'rgba(255, 110, 110, 0.9)' },
+  light: { background: 'rgba(255, 70, 70, 0.3)', border: 'rgba(200, 30, 30, 0.8)' }
+} as const;
+
+const SUBSCRIPT_DIGITS = '₀₁₂₃₄₅₆₇₈₉';
+
+export function toSubscript(value: number): string {
+  return String(Math.trunc(value))
+    .split('')
+    .map((digit) => SUBSCRIPT_DIGITS[Number(digit)] ?? digit)
+    .join('');
+}
+
+export function visibleMultiTokenChars(chars: MultiTokenChar[], visibleOffsets: OffsetRange[]): MultiTokenChar[] {
+  return chars.filter(
+    (char) =>
+      char.range[0] < char.range[1] && visibleOffsets.some((visible) => intersectsRange(char.range, visible))
+  );
+}
 
 export function intersectsRange(token: OffsetRange, visible: OffsetRange): boolean {
   return token[0] < visible[1] && token[1] > visible[0];
@@ -32,6 +59,7 @@ export function bucketVisibleOffsets(offsets: OffsetRange[], visibleOffsets: Off
 
 export class DecorationManager implements vscode.Disposable {
   private readonly decorationTypes: vscode.TextEditorDecorationType[];
+  private readonly multiTokenType: vscode.TextEditorDecorationType;
 
   constructor() {
     const vscodeApi = loadVscode();
@@ -42,9 +70,20 @@ export class DecorationManager implements vscode.Disposable {
         borderRadius: '2px'
       })
     );
+    this.multiTokenType = vscodeApi.window.createTextEditorDecorationType({
+      light: {
+        backgroundColor: MULTI_TOKEN_COLOR.light.background,
+        border: `1px solid ${MULTI_TOKEN_COLOR.light.border}`
+      },
+      dark: {
+        backgroundColor: MULTI_TOKEN_COLOR.dark.background,
+        border: `1px solid ${MULTI_TOKEN_COLOR.dark.border}`
+      },
+      borderRadius: '2px'
+    });
   }
 
-  apply(editor: vscode.TextEditor, offsets: OffsetRange[]): void {
+  apply(editor: vscode.TextEditor, offsets: OffsetRange[], multiTokenChars: MultiTokenChar[] = []): void {
     const vscodeApi = loadVscode();
     const visibleOffsets = editor.visibleRanges.map(
       (range) =>
@@ -65,16 +104,30 @@ export class DecorationManager implements vscode.Disposable {
       );
       editor.setDecorations(decorationType, ranges);
     });
+
+    editor.setDecorations(
+      this.multiTokenType,
+      visibleMultiTokenChars(multiTokenChars, visibleOffsets).map((char) => ({
+        range: new vscodeApi.Range(
+          editor.document.positionAt(char.range[0]),
+          editor.document.positionAt(char.range[1])
+        ),
+        hoverMessage: `This character is split across ${char.tokenCount} tokens`,
+        renderOptions: { after: { contentText: toSubscript(char.tokenCount) } }
+      }))
+    );
   }
 
   clear(editor: vscode.TextEditor): void {
     this.decorationTypes.forEach((decorationType) => {
       editor.setDecorations(decorationType, []);
     });
+    editor.setDecorations(this.multiTokenType, []);
   }
 
   dispose(): void {
     this.decorationTypes.forEach((decorationType) => decorationType.dispose());
+    this.multiTokenType.dispose();
   }
 }
 

@@ -54,7 +54,7 @@ export class TokenVisualizerController {
       }
 
       if (config.enableHighlighting) {
-        this.decorationManager.apply(editor, result.offsets);
+        this.decorationManager.apply(editor, result.offsets, result.multiTokenChars);
         this.statusBar.update({ kind: 'count', count: result.count, ...tokenizer });
       } else {
         this.decorationManager.clear(editor);

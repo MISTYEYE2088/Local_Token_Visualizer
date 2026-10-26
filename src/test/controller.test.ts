@@ -1,7 +1,7 @@
 ﻿import { describe, expect, it, vi } from 'vitest';
 import { TokenVisualizerController } from '../controller';
 
-type TokenizeResult = { count: number; offsets: [number, number][] };
+type TokenizeResult = { count: number; offsets: [number, number][]; multiTokenChars: never[] };
 
 describe('TokenVisualizerController', () => {
   it('does nothing when there is no active editor', async () => {
@@ -52,7 +52,7 @@ describe('TokenVisualizerController', () => {
       tokenize: vi.fn().mockImplementation(async () => {
         expect(statusBar.update).toHaveBeenCalledTimes(1);
         expect(statusBar.update).toHaveBeenCalledWith({ kind: 'loading' });
-        return { count: 1, offsets: [[0, 5]] };
+        return { count: 1, offsets: [[0, 5]], multiTokenChars: [] };
       })
     };
     const controller = new TokenVisualizerController(
@@ -66,7 +66,7 @@ describe('TokenVisualizerController', () => {
 
     expect(tokenizer.tokenize).toHaveBeenCalledWith('C:\\models\\tokenizer', 'hello');
     expect(statusBar.update).toHaveBeenCalledWith({ kind: 'count', count: 1 });
-    expect(decorations.apply).toHaveBeenCalledWith(editor, [[0, 5]]);
+    expect(decorations.apply).toHaveBeenCalledWith(editor, [[0, 5]], []);
   });
 
   it('ignores stale results when an older refresh finishes after a newer refresh', async () => {
@@ -96,13 +96,13 @@ describe('TokenVisualizerController', () => {
 
     const refreshA = controller.refresh(editorA as never);
     const refreshB = controller.refresh(editorB as never);
-    resolveB({ count: 2, offsets: [[10, 20]] });
+    resolveB({ count: 2, offsets: [[10, 20]], multiTokenChars: [] });
     await refreshB;
-    resolveA({ count: 1, offsets: [[0, 5]] });
+    resolveA({ count: 1, offsets: [[0, 5]], multiTokenChars: [] });
     await refreshA;
 
     expect(decorations.apply).toHaveBeenCalledTimes(1);
-    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]]);
+    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]], []);
     expect(statusBar.update).toHaveBeenCalledTimes(3);
     expect(statusBar.update).toHaveBeenLastCalledWith({ kind: 'count', count: 2 });
     expect(statusBar.update).not.toHaveBeenCalledWith({ kind: 'count', count: 1 });
@@ -129,7 +129,7 @@ describe('TokenVisualizerController', () => {
 
     const refresh = controller.refresh(editor as never);
     await controller.refresh(undefined);
-    resolveTokenize({ count: 1, offsets: [[0, 5]] });
+    resolveTokenize({ count: 1, offsets: [[0, 5]], multiTokenChars: [] });
     await refresh;
 
     expect(getConfig).toHaveBeenCalledTimes(1);
@@ -165,7 +165,7 @@ describe('TokenVisualizerController', () => {
 
     const refresh = controller.refresh(editor as never);
     await controller.refresh(editor as never);
-    resolveTokenize({ count: 1, offsets: [[0, 5]] });
+    resolveTokenize({ count: 1, offsets: [[0, 5]], multiTokenChars: [] });
     await refresh;
 
     expect(statusBar.update).toHaveBeenCalledWith({ kind: 'missingPath' });
@@ -203,13 +203,13 @@ describe('TokenVisualizerController', () => {
 
     const refreshA = controller.refresh(editorA as never);
     const refreshB = controller.refresh(editorB as never);
-    resolveB({ count: 2, offsets: [[10, 20]] });
+    resolveB({ count: 2, offsets: [[10, 20]], multiTokenChars: [] });
     await refreshB;
     rejectA(new Error('load failed'));
     await refreshA;
 
     expect(decorations.apply).toHaveBeenCalledTimes(1);
-    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]]);
+    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]], []);
     expect(decorations.clear).not.toHaveBeenCalled();
     expect(statusBar.update).toHaveBeenCalledTimes(3);
     expect(statusBar.update).toHaveBeenLastCalledWith({ kind: 'count', count: 2 });
@@ -221,7 +221,7 @@ describe('TokenVisualizerController', () => {
     const statusBar = { update: vi.fn() };
     const decorations = { apply: vi.fn(), clear: vi.fn() };
     const tokenizer = {
-      tokenize: vi.fn().mockResolvedValue({ count: 1, offsets: [[0, 5]] })
+      tokenize: vi.fn().mockResolvedValue({ count: 1, offsets: [[0, 5]], multiTokenChars: [] })
     };
     const controller = new TokenVisualizerController(
       () => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: false }),

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { PASTEL_TOKEN_COLORS, bucketVisibleOffsets, intersectsRange } from '../decorations';
+import {
+  PASTEL_TOKEN_COLORS,
+  bucketVisibleOffsets,
+  intersectsRange,
+  toSubscript,
+  visibleMultiTokenChars
+} from '../decorations';
 
 describe('PASTEL_TOKEN_COLORS', () => {
   it('defines five looping colors', () => {
@@ -50,5 +56,25 @@ describe('bucketVisibleOffsets', () => {
     );
 
     expect(buckets).toEqual([[], [], [[2, 4]], [], []]);
+  });
+});
+
+describe('toSubscript', () => {
+  it('renders each digit as a subscript character', () => {
+    expect(toSubscript(2)).toBe('₂');
+    expect(toSubscript(4)).toBe('₄');
+    expect(toSubscript(10)).toBe('₁₀');
+  });
+});
+
+describe('visibleMultiTokenChars', () => {
+  it('keeps only characters that intersect a visible range', () => {
+    const chars = [
+      { range: [1, 3], tokenCount: 2 },
+      { range: [20, 22], tokenCount: 3 },
+      { range: [5, 5], tokenCount: 2 }
+    ] as const;
+
+    expect(visibleMultiTokenChars([...chars], [[0, 10]])).toEqual([{ range: [1, 3], tokenCount: 2 }]);
   });
 });

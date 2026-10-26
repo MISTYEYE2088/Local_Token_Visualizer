@@ -67,7 +67,7 @@ describe('bundled tokenizers', () => {
     const service = new TokenizerService();
     const directory = path.join(bundledRoot, 'gpt-4o');
 
-    await expect(service.tokenize(directory, '')).resolves.toEqual({ count: 0, offsets: [] });
+    await expect(service.tokenize(directory, '')).resolves.toEqual({ count: 0, offsets: [], multiTokenChars: [] });
 
     const result = await service.tokenize(directory, SAMPLES.unicode);
     expect(result.offsets.length).toBeGreaterThan(0);
@@ -75,6 +75,38 @@ describe('bundled tokenizers', () => {
       expect(start).toBeLessThan(end);
       expect(end).toBeLessThanOrEqual(SAMPLES.unicode.length);
     }
+  });
+
+  it('flags emoji that byte-level BPE splits across tokens, with the number of tokens each spans', async () => {
+    const service = new TokenizerService();
+    const directory = path.join(bundledRoot, 'gpt-4o');
+
+    // gpt-4o: "a" + two byte tokens for the rocket + "b".
+    await expect(service.tokenize(directory, 'a🚀b')).resolves.toEqual({
+      count: 4,
+      offsets: [[0, 1], [3, 4]],
+      multiTokenChars: [{ range: [1, 3], tokenCount: 2 }]
+    });
+
+    // A family emoji is three people joined by zero-width joiners: each person spans two tokens.
+    const family = await service.tokenize(directory, '👨‍👩‍👧');
+    expect(family.count).toBe(8);
+    expect(family.multiTokenChars).toEqual([
+      { range: [0, 2], tokenCount: 2 },
+      { range: [3, 5], tokenCount: 2 },
+      { range: [6, 8], tokenCount: 2 }
+    ]);
+  });
+
+  it('flags nothing when the tokenizer has a whole token for the character', async () => {
+    const service = new TokenizerService();
+
+    // gemma-4 has a single token for the rocket.
+    await expect(service.tokenize(path.join(bundledRoot, 'gemma-4'), 'a🚀b')).resolves.toEqual({
+      count: 3,
+      offsets: [[0, 1], [1, 3], [3, 4]],
+      multiTokenChars: []
+    });
   });
 
   it('rejects when the directory has no tokenizer.json', async () => {
