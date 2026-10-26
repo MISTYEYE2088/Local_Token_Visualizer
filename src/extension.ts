@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { labelForModel } from './catalog';
-import { readLocalTokenizerConfig, type LocalTokenizerConfig } from './configuration';
+import { nextHighlightSettings, readLocalTokenizerConfig, type LocalTokenizerConfig } from './configuration';
 import { TokenVisualizerController, DEFAULT_SMALL_FILE_THRESHOLD } from './controller';
 import { Debouncer } from './debounce';
 import { DecorationManager } from './decorations';
@@ -69,10 +69,11 @@ export function activate(context: vscode.ExtensionContext): void {
         scheduleRefresh(vscode.window.activeTextEditor);
       }
     }),
-    vscode.commands.registerCommand(TOGGLE_COMMAND, () => {
+    vscode.commands.registerCommand(TOGGLE_COMMAND, async () => {
       const config = vscode.workspace.getConfiguration('localTokenizer');
-      const current = config.get<boolean>('enableHighlighting', true);
-      void config.update('enableHighlighting', !current, vscode.ConfigurationTarget.Global);
+      const next = nextHighlightSettings(readLocalTokenizerConfig(config));
+      await config.update('enableHighlighting', next.enableHighlighting, vscode.ConfigurationTarget.Global);
+      await config.update('showSplitCharCount', next.showSplitCharCount, vscode.ConfigurationTarget.Global);
     }),
     vscode.commands.registerCommand(SELECT_TOKENIZER_COMMAND, () => menu.show()),
     vscode.commands.registerCommand(SELECT_MODEL_PATH_COMMAND, () => menu.browseForFolder())

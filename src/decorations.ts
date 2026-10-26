@@ -87,7 +87,12 @@ export class DecorationManager implements vscode.Disposable {
     });
   }
 
-  apply(editor: vscode.TextEditor, offsets: OffsetRange[], multiTokenChars: MultiTokenChar[] = []): void {
+  apply(
+    editor: vscode.TextEditor,
+    offsets: OffsetRange[],
+    multiTokenChars: MultiTokenChar[] = [],
+    showSplitCharCount = true
+  ): void {
     const vscodeApi = loadVscode();
     const visibleOffsets = editor.visibleRanges.map(
       (range) =>
@@ -117,7 +122,9 @@ export class DecorationManager implements vscode.Disposable {
           editor.document.positionAt(char.range[1])
         ),
         hoverMessage: `This character is split across ${char.tokenCount} tokens`,
-        renderOptions: { after: { contentText: toSubscript(char.tokenCount), textDecoration: SUBSCRIPT_DROP_CSS } }
+        ...(showSplitCharCount
+          ? { renderOptions: { after: { contentText: toSubscript(char.tokenCount), textDecoration: SUBSCRIPT_DROP_CSS } } }
+          : {})
       }))
     );
   }

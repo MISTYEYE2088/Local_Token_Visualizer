@@ -8,7 +8,7 @@ interface WithTokenizer {
 }
 
 export type TokenStatus =
-  | ({ kind: 'count'; count: number } & WithTokenizer)
+  | ({ kind: 'count'; count: number; splitCountHidden?: boolean } & WithTokenizer)
   | ({ kind: 'missingPath' } & WithTokenizer)
   | ({ kind: 'loading' } & WithTokenizer)
   | ({ kind: 'disabled'; count: number; highlightOff?: boolean } & WithTokenizer)
@@ -22,7 +22,9 @@ export interface StatusBarCommands {
 export function formatStatusBarText(status: TokenStatus): string {
   switch (status.kind) {
     case 'count':
-      return `$(symbol-numeric) Tokens: ${status.count.toLocaleString('en-US')}`;
+      return status.splitCountHidden
+        ? `$(symbol-numeric) Tokens: ${status.count.toLocaleString('en-US')} (no subscript)`
+        : `$(symbol-numeric) Tokens: ${status.count.toLocaleString('en-US')}`;
     case 'missingPath':
       return '$(symbol-numeric) Tokens: Select tokenizer';
     case 'loading':
@@ -78,9 +80,7 @@ export class StatusBarController implements vscode.Disposable {
 
     const links = [`[Change tokenizer…](command:${this.selectTokenizerCommandId})`];
     if (status.kind === 'count' || status.kind === 'disabled') {
-      links.unshift(
-        `[${status.kind === 'count' ? 'Turn highlighting off' : 'Turn highlighting on'}](command:${this.commandId})`
-      );
+      links.unshift(`[${this.nextActionFor(status)}](command:${this.commandId})`);
     }
 
     const markdown = new vscode.MarkdownString(`${lines.join('\n\n')}\n\n${links.join(' · ')}`);
@@ -101,8 +101,18 @@ export class StatusBarController implements vscode.Disposable {
       case 'disabled':
         return 'Highlighting is off; token counting is still active. Click to turn it on.';
       case 'count':
-        return 'Token count for the current document. Click to turn highlighting off.';
+        return status.splitCountHidden
+          ? 'Token count for the current document. Subscript counts on split characters are hidden. Click to turn highlighting off.'
+          : 'Token count for the current document. Click to hide the subscript counts on split characters.';
     }
+  }
+
+  private nextActionFor(status: TokenStatus): string {
+    if (status.kind === 'disabled') {
+      return 'Turn highlighting on';
+    }
+
+    return status.kind === 'count' && !status.splitCountHidden ? 'Hide subscript counts' : 'Turn highlighting off';
   }
 }
 

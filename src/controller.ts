@@ -7,7 +7,8 @@ import type { TokenizerService } from './tokenizerService';
 
 export const DEFAULT_SMALL_FILE_THRESHOLD = 50000;
 
-export type ControllerConfig = Pick<LocalTokenizerConfig, 'modelPath' | 'enableHighlighting' | 'modelLabel'>;
+export type ControllerConfig = Pick<LocalTokenizerConfig, 'modelPath' | 'enableHighlighting' | 'modelLabel'> &
+  Partial<Pick<LocalTokenizerConfig, 'showSplitCharCount'>>;
 
 export class TokenVisualizerController {
   private refreshSequence = 0;
@@ -54,8 +55,14 @@ export class TokenVisualizerController {
       }
 
       if (config.enableHighlighting) {
-        this.decorationManager.apply(editor, result.offsets, result.multiTokenChars);
-        this.statusBar.update({ kind: 'count', count: result.count, ...tokenizer });
+        const showSplitCharCount = config.showSplitCharCount !== false;
+        this.decorationManager.apply(editor, result.offsets, result.multiTokenChars, showSplitCharCount);
+        this.statusBar.update({
+          kind: 'count',
+          count: result.count,
+          ...(showSplitCharCount ? {} : { splitCountHidden: true }),
+          ...tokenizer
+        });
       } else {
         this.decorationManager.clear(editor);
         this.statusBar.update({ kind: 'disabled', count: result.count, highlightOff: true, ...tokenizer });

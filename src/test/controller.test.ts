@@ -66,7 +66,27 @@ describe('TokenVisualizerController', () => {
 
     expect(tokenizer.tokenize).toHaveBeenCalledWith('C:\\models\\tokenizer', 'hello');
     expect(statusBar.update).toHaveBeenCalledWith({ kind: 'count', count: 1 });
-    expect(decorations.apply).toHaveBeenCalledWith(editor, [[0, 5]], []);
+    expect(decorations.apply).toHaveBeenCalledWith(editor, [[0, 5]], [], true);
+  });
+
+  it('hides the split-character counts and says so in the status bar when the setting is off', async () => {
+    const editor = { document: { getText: () => 'hello' } };
+    const statusBar = { update: vi.fn() };
+    const decorations = { apply: vi.fn(), clear: vi.fn() };
+    const tokenizer = {
+      tokenize: vi.fn().mockResolvedValue({ count: 1, offsets: [[0, 5]], multiTokenChars: [] })
+    };
+    const controller = new TokenVisualizerController(
+      () => ({ modelPath: 'C:\\models\\tokenizer', enableHighlighting: true, showSplitCharCount: false }),
+      tokenizer,
+      decorations,
+      statusBar
+    );
+
+    await controller.refresh(editor as never);
+
+    expect(decorations.apply).toHaveBeenCalledWith(editor, [[0, 5]], [], false);
+    expect(statusBar.update).toHaveBeenLastCalledWith({ kind: 'count', count: 1, splitCountHidden: true });
   });
 
   it('ignores stale results when an older refresh finishes after a newer refresh', async () => {
@@ -102,7 +122,7 @@ describe('TokenVisualizerController', () => {
     await refreshA;
 
     expect(decorations.apply).toHaveBeenCalledTimes(1);
-    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]], []);
+    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]], [], true);
     expect(statusBar.update).toHaveBeenCalledTimes(3);
     expect(statusBar.update).toHaveBeenLastCalledWith({ kind: 'count', count: 2 });
     expect(statusBar.update).not.toHaveBeenCalledWith({ kind: 'count', count: 1 });
@@ -209,7 +229,7 @@ describe('TokenVisualizerController', () => {
     await refreshA;
 
     expect(decorations.apply).toHaveBeenCalledTimes(1);
-    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]], []);
+    expect(decorations.apply).toHaveBeenCalledWith(editorB, [[10, 20]], [], true);
     expect(decorations.clear).not.toHaveBeenCalled();
     expect(statusBar.update).toHaveBeenCalledTimes(3);
     expect(statusBar.update).toHaveBeenLastCalledWith({ kind: 'count', count: 2 });

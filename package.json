@@ -38,6 +38,11 @@
           "default": true,
           "description": "Enable the looping rainbow token overlay in visible editor ranges."
         },
+        "localTokenizer.showSplitCharCount": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a subscript number after characters that are split across several tokens (for example an emoji that takes 2 tokens). The red box stays; turn this off to hide just the number."
+        },
         "localTokenizer.smallFileThreshold": {
           "type": "number",
           "default": 50000,

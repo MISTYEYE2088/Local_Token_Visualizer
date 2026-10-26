@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { readLocalTokenizerConfig, validateModelPath } from '../configuration';
+import {
+  highlightModeOf,
+  nextHighlightSettings,
+  readLocalTokenizerConfig,
+  validateModelPath
+} from '../configuration';
 
 describe('readLocalTokenizerConfig', () => {
   it('reads model path and highlighting setting from a VS Code-like configuration object', () => {
@@ -16,6 +21,7 @@ describe('readLocalTokenizerConfig', () => {
     expect(readLocalTokenizerConfig(config)).toEqual({
       modelPath: 'C:\\models\\llama-tokenizer',
       enableHighlighting: false,
+      showSplitCharCount: true,
       model: 'gpt-4o'
     });
   });
@@ -30,6 +36,7 @@ describe('readLocalTokenizerConfig', () => {
     expect(readLocalTokenizerConfig(config)).toEqual({
       modelPath: 'C:\\models\\qwen',
       enableHighlighting: true,
+      showSplitCharCount: true,
       model: 'gpt-4o'
     });
   });
@@ -58,6 +65,32 @@ describe('validateModelPath', () => {
     expect(validateModelPath('C:\\models\\mistral')).toEqual({
       ok: true,
       path: 'C:\\models\\mistral'
+    });
+  });
+});
+
+describe('highlight mode cycle', () => {
+  it('reads the mode from the two settings', () => {
+    expect(highlightModeOf({ enableHighlighting: true, showSplitCharCount: true })).toBe('full');
+    expect(highlightModeOf({ enableHighlighting: true, showSplitCharCount: false })).toBe('noSubscript');
+    expect(highlightModeOf({ enableHighlighting: false, showSplitCharCount: true })).toBe('off');
+    expect(highlightModeOf({ enableHighlighting: false, showSplitCharCount: false })).toBe('off');
+  });
+
+  it('cycles full, then no subscript, then off, then full again', () => {
+    const full = { enableHighlighting: true, showSplitCharCount: true };
+    const noSubscript = nextHighlightSettings(full);
+    const off = nextHighlightSettings(noSubscript);
+
+    expect(noSubscript).toEqual({ enableHighlighting: true, showSplitCharCount: false });
+    expect(off).toEqual({ enableHighlighting: false, showSplitCharCount: false });
+    expect(nextHighlightSettings(off)).toEqual(full);
+  });
+
+  it('turns highlighting back on with the subscript shown, even if only highlighting was switched off before', () => {
+    expect(nextHighlightSettings({ enableHighlighting: false, showSplitCharCount: true })).toEqual({
+      enableHighlighting: true,
+      showSplitCharCount: true
     });
   });
 });

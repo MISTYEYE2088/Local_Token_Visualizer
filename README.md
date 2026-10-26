@@ -39,12 +39,16 @@ Choosing a tokenizer marked *download* fetches `tokenizer.json` (and `tokenizer_
 
 | Control | Action |
 | --- | --- |
-| Status bar `Tokens: N` | Click to toggle token highlighting. Hover for the active tokenizer and a *Change tokenizer…* link. |
+| Status bar `Tokens: N` | Click to cycle through three states: highlighting with subscript counts, highlighting without the subscript counts, and highlighting off. Hover for the active tokenizer and a *Change tokenizer…* link. |
 | `Local Token Visualizer: Select Tokenizer` | Opens the tokenizer menu. |
 | `Local Token Visualizer: Use Local Tokenizer Folder` | Opens a folder picker and saves `localTokenizer.modelPath`. |
-| `Local Token Visualizer: Toggle Highlighting` | Toggles `localTokenizer.enableHighlighting`. |
+| `Local Token Visualizer: Toggle Highlighting` | Same cycle as the status bar click; updates `localTokenizer.enableHighlighting` and `localTokenizer.showSplitCharCount`. |
 
-When highlighting is off, the status bar shows `Tokens: N (highlight off)`.
+When highlighting is off, the status bar shows `Tokens: N (highlight off)`. When only the subscript counts are hidden, it shows `Tokens: N (no subscript)`.
+
+### Characters split across tokens
+
+Some tokenizers (byte-level BPE such as GPT-4o) split one character, often an emoji, into several tokens. Those characters get a red box and a subscript number showing how many tokens they span, for example `🚀₂`. Hover the box for the same information. Hide the number with `localTokenizer.showSplitCharCount`; the red box and hover stay.
 
 ## Settings
 
@@ -53,6 +57,7 @@ When highlighting is off, the status bar shows `Tokens: N (highlight off)`.
 | `localTokenizer.model` | `gpt-4o` | Tokenizer chosen from the menu: a catalog id (`gpt-4o`, `o200k-harmony`, `gemma-4`, `gpt-4`, `llama-3`, `qwen-2.5`, `deepseek-v3`, `mistral-v3`) or any Hugging Face repo id such as `Qwen/Qwen2.5-0.5B`. |
 | `localTokenizer.modelPath` | empty | Optional. A local folder containing `tokenizer.json`. Overrides `localTokenizer.model` when set. |
 | `localTokenizer.enableHighlighting` | `true` | Enables or disables token overlay highlighting. |
+| `localTokenizer.showSplitCharCount` | `true` | Shows the subscript token count next to characters split across several tokens. |
 | `localTokenizer.smallFileThreshold` | `50000` | Files below this character count update immediately instead of waiting for debounce. |
 
 ## Development

@@ -29,6 +29,12 @@ describe('formatStatusBarText', () => {
     expect(formatStatusBarText({ kind: 'count', count: 1234 })).toBe('$(symbol-numeric) Tokens: 1,234');
   });
 
+  it('appends (no subscript) when the split-character counts are hidden', () => {
+    expect(formatStatusBarText({ kind: 'count', count: 9, splitCountHidden: true })).toBe(
+      '$(symbol-numeric) Tokens: 9 (no subscript)'
+    );
+  });
+
   it('formats missing configuration', () => {
     expect(formatStatusBarText({ kind: 'missingPath' })).toBe('$(symbol-numeric) Tokens: Select tokenizer');
   });
@@ -100,6 +106,19 @@ describe('StatusBarController tokenizer menu', () => {
     expect(markdown().value).toContain(`(command:${SELECT_COMMAND})`);
     expect(markdown().value).toContain(`(command:${TOGGLE_COMMAND})`);
     expect(markdown().isTrusted.enabledCommands).toEqual([TOGGLE_COMMAND, SELECT_COMMAND]);
+  });
+
+  it('offers the next step of the click cycle in the tooltip', () => {
+    const controller = new StatusBarController(TOGGLE_COMMAND, SELECT_COMMAND);
+
+    controller.update({ kind: 'count', count: 5 });
+    expect(markdown().value).toContain('[Hide subscript counts]');
+
+    controller.update({ kind: 'count', count: 5, splitCountHidden: true });
+    expect(markdown().value).toContain('[Turn highlighting off]');
+
+    controller.update({ kind: 'disabled', count: 5, highlightOff: true });
+    expect(markdown().value).toContain('[Turn highlighting on]');
   });
 
   it('shows the failure reason in the tooltip', () => {
