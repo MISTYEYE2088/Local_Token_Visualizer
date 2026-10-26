@@ -21,6 +21,10 @@ export const MULTI_TOKEN_COLOR = {
   light: { background: 'rgba(255, 70, 70, 0.3)', border: 'rgba(200, 30, 30, 0.8)' }
 } as const;
 
+// VS Code only exposes `textDecoration` on the after-attachment, so extra CSS rides along after a `;`.
+// It nudges the subscript digit below the text baseline.
+const SUBSCRIPT_DROP_CSS = 'none; position: relative; top: 0.4em';
+
 const SUBSCRIPT_DIGITS = '₀₁₂₃₄₅₆₇₈₉';
 
 export function toSubscript(value: number): string {
@@ -113,7 +117,7 @@ export class DecorationManager implements vscode.Disposable {
           editor.document.positionAt(char.range[1])
         ),
         hoverMessage: `This character is split across ${char.tokenCount} tokens`,
-        renderOptions: { after: { contentText: toSubscript(char.tokenCount) } }
+        renderOptions: { after: { contentText: toSubscript(char.tokenCount), textDecoration: SUBSCRIPT_DROP_CSS } }
       }))
     );
   }
