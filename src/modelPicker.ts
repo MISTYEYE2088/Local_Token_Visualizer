@@ -55,7 +55,7 @@ export function buildPickerRows(state: PickerState): PickerRow[] {
   rows.push({ separator: true, label: 'More' });
   rows.push({
     label: '$(search) Enter a Hugging Face model ID…',
-    detail: 'Download any public repository that has a tokenizer.json, e.g. mistralai/Mistral-7B-v0.1',
+    detail: 'Download any public repository that has a tokenizer.json, e.g. mistralai/Ministral-3-3B-Instruct-2512',
     action: { type: 'customHuggingFace' }
   });
   rows.push({

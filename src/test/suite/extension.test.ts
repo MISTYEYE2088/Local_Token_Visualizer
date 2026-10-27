@@ -46,10 +46,10 @@ suite('Extension', () => {
     );
   });
 
-  test('defaults to the bundled GPT-4o tokenizer', () => {
+  test('defaults to the bundled OpenAI tokenizer', () => {
     const config = vscode.workspace.getConfiguration('localTokenizer');
 
-    assert.strictEqual(config.get('model'), 'gpt-4o');
+    assert.strictEqual(config.get('model'), 'o200k-harmony');
     assert.strictEqual(config.get('modelPath'), '');
   });
 });

@@ -25,8 +25,8 @@
       "properties": {
         "localTokenizer.model": {
           "type": "string",
-          "default": "gpt-4o",
-          "markdownDescription": "Tokenizer to use: a built-in or downloadable id such as `gpt-4o`, `gpt-4`, `claude-legacy`, `gemma-2`, `llama-3`, or any Hugging Face repository id like `Qwen/Qwen2.5-0.5B`. Use **Local Token Visualizer: Select Tokenizer** to choose from a menu instead of typing."
+          "default": "o200k-harmony",
+          "markdownDescription": "Tokenizer to use: a built-in or downloadable id such as `o200k-harmony`, `gemma-4`, `deepseek-v4`, `qwen-3.8`, `glm-5`, `mimo-v2.6`, `minimax-m2`, `mistral-small-4`, or any Hugging Face repository id like `Qwen/Qwen3.8-27B`. Use **Local Token Visualizer: Select Tokenizer** to choose from a menu instead of typing."
         },
         "localTokenizer.modelPath": {
           "type": "string",

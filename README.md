@@ -7,7 +7,7 @@ Local Token Visualizer is a VS Code extension for counting and visualizing LLM t
 ## What It Does
 
 - Counts tokens for the active editor and highlights each token range with a five-color overlay.
-- Works out of the box with built-in OpenAI and Google tokenizers, and downloads others on request.
+- Works out of the box with built-in OpenAI, Google and DeepSeek tokenizers, and downloads others (Qwen, GLM, MiMo, MiniMax, Mistral) on request.
 - Counts tokens locally. Nothing in your editor is ever sent anywhere.
 - Updates immediately for smaller files and debounces larger files.
 
@@ -17,18 +17,25 @@ Click the **Tokens** status bar item when it says *Select tokenizer*, hover it a
 
 | Tokenizer | For | Where it comes from |
 | --- | --- | --- |
-| GPT-4o / o-series (`o200k_base`) | GPT-4o, GPT-4.1, o1, o3 | Built in (default) |
-| gpt-oss (`o200k_harmony`) | gpt-oss, Harmony chat format | Built in |
+| OpenAI GPT (`o200k_harmony`) | gpt-oss, GPT-4o, o-series; closest public match for newer GPT models | Built in (default) |
 | Gemma 4 | Gemma 4 (closest public match to Gemini) | Built in |
-| GPT-4 / GPT-3.5 (`cl100k_base`) | GPT-4, GPT-3.5 Turbo, embeddings v3 | Download |
-| Llama 3.1, Qwen 2.5, DeepSeek V3, Mistral v3 | Those model families | Download |
+| DeepSeek V4.1 | DeepSeek V4.1 Flash | Built in |
+| Qwen 3.8 | Qwen 3.8 family | Download |
+| GLM 5.3 | GLM 5.1, 5.2 and 5.3 | Download |
+| MiMo V2.6 | MiMo V2.6 Pro and Flash | Download |
+| MiniMax M2.7 | MiniMax M2.5 and M2.7 | Download |
+| Mistral Small 4 | Mistral Small 4 | Download |
 | Any Hugging Face repo | Anything with a `tokenizer.json` | **Enter a Hugging Face model ID…** |
 | A folder on disk | Your own tokenizer | **Use a local folder…** |
 
+The list follows the open-weight model families people use today. Older tokenizers (GPT-4 `cl100k_base`, Llama 3, Qwen 2.5, DeepSeek V3, Mistral 7B) are no longer listed, but you can still use them: enter their Hugging Face ID (for example `Xenova/gpt-4`) or point to a folder.
+
 Notes on accuracy:
 
-- **Claude:** Anthropic has not published the tokenizer for Claude 3 and newer, and the old Claude 1/2 tokenizer is not close enough to be useful, so none is included. Use Anthropic's token counting API for exact Claude numbers.
+- **Claude:** Anthropic has not published a tokenizer for current Claude models, and the old Claude 1/2 tokenizer is not close enough to be useful, so none is included. Use Anthropic's token counting API for exact Claude numbers.
+- **GPT:** OpenAI's newest public tokenizer is `o200k_harmony` (gpt-oss). Counts for GPT models released since are approximate.
 - **Gemini:** Google has not published Gemini's tokenizer. Gemma 4 is the closest public one, so Gemini counts are approximate.
+- **Not in the list:** Kimi (Moonshot) publishes `tiktoken.model` instead of `tokenizer.json`, xAI's public Grok tokenizer uses its own file format, and Llama 4 on Hugging Face is gated. If you have a `tokenizer.json` for one of them, use **Use a local folder…**.
 - Counts cover the text itself. Special tokens that a model adds on its own, such as a BOS token, are not counted.
 
 ### Downloads
@@ -54,7 +61,7 @@ Some tokenizers (byte-level BPE such as GPT-4o) split one character, often an em
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `localTokenizer.model` | `gpt-4o` | Tokenizer chosen from the menu: a catalog id (`gpt-4o`, `o200k-harmony`, `gemma-4`, `gpt-4`, `llama-3`, `qwen-2.5`, `deepseek-v3`, `mistral-v3`) or any Hugging Face repo id such as `Qwen/Qwen2.5-0.5B`. |
+| `localTokenizer.model` | `o200k-harmony` | Tokenizer chosen from the menu: a catalog id (`o200k-harmony`, `gemma-4`, `deepseek-v4`, `qwen-3.8`, `glm-5`, `mimo-v2.6`, `minimax-m2`, `mistral-small-4`) or any Hugging Face repo id such as `Qwen/Qwen3.8-27B`. The old id `gpt-4o` still works and maps to `o200k-harmony`. |
 | `localTokenizer.modelPath` | empty | Optional. A local folder containing `tokenizer.json`. Overrides `localTokenizer.model` when set. |
 | `localTokenizer.enableHighlighting` | `true` | Enables or disables token overlay highlighting. |
 | `localTokenizer.showSplitCharCount` | `true` | Shows the subscript token count next to characters split across several tokens. |
@@ -73,4 +80,4 @@ npm run package            # builds the VSIX
 
 ## Package Size Notes
 
-The extension uses `@huggingface/tokenizers`, a zero-dependency, pure JavaScript tokenizer, and ships as a single esbuild bundle (`dist/extension.js`). No `node_modules` or native runtimes are packaged. Almost all of the VSIX is the three built-in `tokenizer.json` files (about 13 MB compressed in total); everything else is under 0.5 MB.
+The extension uses `@huggingface/tokenizers`, a zero-dependency, pure JavaScript tokenizer, and ships as a single esbuild bundle (`dist/extension.js`). No `node_modules` or native runtimes are packaged. Almost all of the VSIX is the three built-in `tokenizer.json` files (about 12 MB compressed in total); everything else is under 0.5 MB.

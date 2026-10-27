@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CATALOG,
   DEFAULT_MODEL_ID,
+  canonicalModelId,
   findCatalogEntry,
   isHuggingFaceRepoId,
   isValidModelId,
@@ -37,19 +38,28 @@ describe('catalog', () => {
     expect(CATALOG.some((entry) => /claude/i.test(entry.id))).toBe(false);
   });
 
-  it('bundles the current OpenAI and Google tokenizers', () => {
+  it('bundles the current OpenAI, Google and DeepSeek tokenizers', () => {
     expect(CATALOG.filter((entry) => entry.bundled).map((entry) => entry.id)).toEqual([
-      'gpt-4o',
       'o200k-harmony',
-      'gemma-4'
+      'gemma-4',
+      'deepseek-v4'
     ]);
+  });
+
+  it('keeps old saved ids working through aliases without clashing with other ids', () => {
+    expect(findCatalogEntry('gpt-4o')?.id).toBe('o200k-harmony');
+    expect(canonicalModelId('gpt-4o')).toBe('o200k-harmony');
+    expect(canonicalModelId('acme/model')).toBe('acme/model');
+
+    const taken = CATALOG.flatMap((entry) => [entry.id, ...(entry.aliases ?? [])]);
+    expect(new Set(taken).size).toBe(taken.length);
   });
 });
 
 describe('model ids', () => {
   it('accepts catalog ids and owner/name repository ids', () => {
     expect(isValidModelId('gpt-4o')).toBe(true);
-    expect(isValidModelId('Qwen/Qwen2.5-0.5B')).toBe(true);
+    expect(isValidModelId('Qwen/Qwen3.8-27B')).toBe(true);
     expect(isHuggingFaceRepoId('mistralai/Mistral-7B-v0.1')).toBe(true);
   });
 
@@ -61,9 +71,11 @@ describe('model ids', () => {
   );
 
   it('builds a flat folder name and a friendly label', () => {
-    expect(slugForModel('Qwen/Qwen2.5-0.5B')).toBe('Qwen--Qwen2.5-0.5B');
-    expect(slugForModel('gpt-4o')).toBe('gpt-4o');
-    expect(labelForModel('gpt-4o')).toBe('GPT-4o / o-series (o200k_base)');
-    expect(labelForModel('Qwen/Qwen2.5-0.5B')).toBe('Qwen/Qwen2.5-0.5B');
+    expect(slugForModel('Qwen/Qwen3.8-27B')).toBe('Qwen--Qwen3.8-27B');
+    expect(slugForModel('o200k-harmony')).toBe('o200k-harmony');
+    expect(slugForModel('gpt-4o')).toBe('o200k-harmony');
+    expect(labelForModel('o200k-harmony')).toBe('OpenAI GPT (o200k_harmony)');
+    expect(labelForModel('gpt-4o')).toBe('OpenAI GPT (o200k_harmony)');
+    expect(labelForModel('Qwen/Qwen3.8-27B')).toBe('Qwen/Qwen3.8-27B');
   });
 });

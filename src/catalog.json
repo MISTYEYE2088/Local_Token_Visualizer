@@ -1,26 +1,17 @@
 {
-  "defaultModel": "gpt-4o",
+  "defaultModel": "o200k-harmony",
   "tokenizers": [
     {
-      "id": "gpt-4o",
-      "label": "GPT-4o / o-series (o200k_base)",
-      "vendor": "OpenAI",
-      "repo": "Xenova/gpt-4o",
-      "revision": "7956d98f2a83b2751a98ea7136fdf7fe6cf54e69",
-      "bundled": true,
-      "description": "GPT-4o, GPT-4.1, o1, o3",
-      "license": "MIT",
-      "sha256": "43a3ad4618a6a938f8c2614154ea10c31ad53a62d5683ae0b0e6133575cef07e"
-    },
-    {
       "id": "o200k-harmony",
-      "label": "gpt-oss (o200k_harmony)",
+      "aliases": ["gpt-4o"],
+      "label": "OpenAI GPT (o200k_harmony)",
       "vendor": "OpenAI",
       "repo": "openai/gpt-oss-20b",
       "revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
       "bundled": true,
-      "description": "gpt-oss models and the Harmony chat format",
+      "description": "gpt-oss, GPT-4o, o-series; newest public OpenAI tokenizer",
       "license": "Apache-2.0",
+      "note": "OpenAI has not published tokenizers for its newest GPT models, so counts for those are approximate.",
       "sha256": "0614fe83cadab421296e664e1f48f4261fa8fef6e03e63bb75c20f38e37d07d3"
     },
     {
@@ -36,53 +27,64 @@
       "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f"
     },
     {
-      "id": "gpt-4",
-      "label": "GPT-4 / GPT-3.5 (cl100k_base)",
-      "vendor": "OpenAI",
-      "repo": "Xenova/gpt-4",
-      "revision": "1d9f1f1b1fae88c0e4df1dab0a397f8de6229075",
-      "bundled": false,
-      "description": "GPT-4, GPT-4 Turbo, GPT-3.5 Turbo, text-embedding-3",
-      "license": "tiktoken vocabulary (MIT)"
+      "id": "deepseek-v4",
+      "label": "DeepSeek V4.1",
+      "vendor": "DeepSeek",
+      "repo": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "revision": "1bae0e1088993b9b82de08f59de5be5a34e42170",
+      "bundled": true,
+      "description": "DeepSeek V4.1 Flash",
+      "license": "MIT",
+      "sha256": "c90dfa01249db1be4245780a052ede752e1361c612ac6d08e2bdada7d599476b"
     },
     {
-      "id": "llama-3",
-      "label": "Llama 3.1",
-      "vendor": "Meta",
-      "repo": "Xenova/Meta-Llama-3.1-Tokenizer",
-      "revision": "d49ea33e96b3fcf8738bb79ff9d85da81742fa82",
-      "bundled": false,
-      "description": "Llama 3.x family",
-      "license": "Llama 3.1 Community License"
-    },
-    {
-      "id": "qwen-2.5",
-      "label": "Qwen 2.5",
+      "id": "qwen-3.8",
+      "label": "Qwen 3.8",
       "vendor": "Alibaba",
-      "repo": "Qwen/Qwen2.5-0.5B",
-      "revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+      "repo": "Qwen/Qwen3.8-27B",
+      "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
       "bundled": false,
-      "description": "Qwen 2.5 / Qwen 3 family",
+      "description": "Qwen 3.8 family",
       "license": "Apache-2.0"
     },
     {
-      "id": "deepseek-v3",
-      "label": "DeepSeek V3",
-      "vendor": "DeepSeek",
-      "repo": "deepseek-ai/DeepSeek-V3",
-      "revision": "e815299b0bcbac849fa540c768ef21845365c9eb",
+      "id": "glm-5",
+      "label": "GLM 5.3",
+      "vendor": "Z.ai",
+      "repo": "zai-org/GLM-5.3",
+      "revision": "ba32f8c19c8738e2c57c71798c601d477a7bf844",
       "bundled": false,
-      "description": "DeepSeek V3 / R1",
-      "license": "DeepSeek Model License"
+      "description": "GLM 5.1, 5.2 and 5.3",
+      "license": "GLM-5.3 license"
     },
     {
-      "id": "mistral-v3",
-      "label": "Mistral (v3)",
-      "vendor": "Mistral AI",
-      "repo": "Xenova/mistral-tokenizer-v3",
-      "revision": "b251f946a5b6b16c36963ea8848611bce67dfbf1",
+      "id": "mimo-v2.6",
+      "label": "MiMo V2.6",
+      "vendor": "Xiaomi",
+      "repo": "XiaomiMiMo/MiMo-V2.6-Pro-RL",
+      "revision": "b61f21852680ee02a29e946e18cf8697f4844061",
       "bundled": false,
-      "description": "Mistral 7B v0.3, Mixtral",
+      "description": "MiMo V2.6 (Pro and Flash)",
+      "license": "MIT"
+    },
+    {
+      "id": "minimax-m2",
+      "label": "MiniMax M2.7",
+      "vendor": "MiniMax",
+      "repo": "MiniMaxAI/MiniMax-M2.7",
+      "revision": "0a6536713b0b03f3be97494e5cf8d22f668a3164",
+      "bundled": false,
+      "description": "MiniMax M2.5 and M2.7",
+      "license": "MiniMax license"
+    },
+    {
+      "id": "mistral-small-4",
+      "label": "Mistral Small 4",
+      "vendor": "Mistral AI",
+      "repo": "mistralai/Mistral-Small-4-119B-2603",
+      "revision": "a11f36bebf709121056b1dbcc943d1c6afbe494d",
+      "bundled": false,
+      "description": "Mistral Small 4 (other Mistral models use different tokenizers)",
       "license": "Apache-2.0"
     }
   ]

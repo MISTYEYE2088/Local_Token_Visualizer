@@ -32,8 +32,8 @@ describe('TokenizerStore', () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'ltv-store-'));
     bundledRoot = path.join(root, 'bundled');
     downloadRoot = path.join(root, 'downloads');
-    await fs.mkdir(path.join(bundledRoot, 'gpt-4o'), { recursive: true });
-    await fs.writeFile(path.join(bundledRoot, 'gpt-4o', 'tokenizer.json'), VALID_TOKENIZER);
+    await fs.mkdir(path.join(bundledRoot, 'o200k-harmony'), { recursive: true });
+    await fs.writeFile(path.join(bundledRoot, 'o200k-harmony', 'tokenizer.json'), VALID_TOKENIZER);
   });
 
   afterEach(async () => {
@@ -44,8 +44,8 @@ describe('TokenizerStore', () => {
     it('finds bundled tokenizers and prefers them over downloads', async () => {
       const store = new TokenizerStore(bundledRoot, downloadRoot, vi.fn());
 
-      await expect(store.resolve('gpt-4o')).resolves.toEqual({
-        path: path.join(bundledRoot, 'gpt-4o'),
+      await expect(store.resolve('o200k-harmony')).resolves.toEqual({
+        path: path.join(bundledRoot, 'o200k-harmony'),
         source: 'bundled'
       });
     });
@@ -53,7 +53,7 @@ describe('TokenizerStore', () => {
     it('returns undefined for tokenizers that are not on disk', async () => {
       const store = new TokenizerStore(bundledRoot, downloadRoot, vi.fn());
 
-      await expect(store.resolve('llama-3')).resolves.toBeUndefined();
+      await expect(store.resolve('qwen-3.8')).resolves.toBeUndefined();
     });
 
     it('refuses ids that could escape the storage folders', async () => {
@@ -67,7 +67,7 @@ describe('TokenizerStore', () => {
 
   describe('download', () => {
     it('downloads a catalog entry at its pinned revision and reports progress', async () => {
-      const entry = findCatalogEntry('llama-3')!;
+      const entry = findCatalogEntry('qwen-3.8')!;
       const fetchImpl = vi.fn<FetchLike>(async (url) =>
         url.endsWith('tokenizer.json')
           ? response(200, VALID_TOKENIZER, { 'content-length': String(VALID_TOKENIZER.length) })
@@ -76,12 +76,12 @@ describe('TokenizerStore', () => {
       const progress = vi.fn();
       const store = new TokenizerStore(bundledRoot, downloadRoot, fetchImpl);
 
-      const result = await store.download('llama-3', progress);
+      const result = await store.download('qwen-3.8', progress);
 
       expect(fetchImpl.mock.calls[0][0]).toBe(
         `https://huggingface.co/${entry.repo}/resolve/${entry.revision}/tokenizer.json`
       );
-      expect(result).toEqual({ path: path.join(downloadRoot, 'llama-3'), source: 'downloaded' });
+      expect(result).toEqual({ path: path.join(downloadRoot, 'qwen-3.8'), source: 'downloaded' });
       expect(await fs.readFile(path.join(result.path, 'tokenizer.json'), 'utf8')).toBe(VALID_TOKENIZER);
       expect(await fs.readFile(path.join(result.path, 'tokenizer_config.json'), 'utf8')).toBe('{"a":1}');
       expect(progress).toHaveBeenCalledWith({
@@ -89,7 +89,7 @@ describe('TokenizerStore', () => {
         receivedBytes: VALID_TOKENIZER.length,
         totalBytes: VALID_TOKENIZER.length
       });
-      await expect(store.resolve('llama-3')).resolves.toMatchObject({ source: 'downloaded' });
+      await expect(store.resolve('qwen-3.8')).resolves.toMatchObject({ source: 'downloaded' });
     });
 
     it('downloads an arbitrary Hugging Face repo from main and tolerates a missing tokenizer_config.json', async () => {
@@ -109,7 +109,7 @@ describe('TokenizerStore', () => {
     it('explains gated repositories', async () => {
       const store = new TokenizerStore(bundledRoot, downloadRoot, async () => response(401));
 
-      await expect(store.download('google/gemma-2-2b')).rejects.toThrow(/gated or private/);
+      await expect(store.download('meta-llama/Llama-4-Scout-17B-16E-Instruct')).rejects.toThrow(/gated or private/);
     });
 
     it('explains repositories without a tokenizer.json', async () => {

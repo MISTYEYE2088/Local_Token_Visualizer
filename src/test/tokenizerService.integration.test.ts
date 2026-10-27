@@ -7,9 +7,9 @@ import { CATALOG } from '../catalog';
 import { TokenizerService } from '../tokenizerService';
 
 // These tests use the real bundled tokenizers, fetched by `npm run fetch-tokenizers`
-// (which `npm test` runs first). Expected counts for the OpenAI encodings come from an
-// independent tiktoken implementation; the Gemma 4 counts come from the Rust Hugging Face
-// `tokenizers` library, the reference implementation for tokenizer.json files.
+// (which `npm test` runs first). Expected counts for the OpenAI encoding come from an
+// independent tiktoken implementation; the Gemma 4 and DeepSeek counts come from the Rust
+// Hugging Face `tokenizers` library, the reference implementation for tokenizer.json files.
 const bundledRoot = path.resolve(__dirname, '../../tokenizers');
 
 const SAMPLES = {
@@ -19,9 +19,9 @@ const SAMPLES = {
 };
 
 const EXPECTED_COUNTS: Record<string, Record<keyof typeof SAMPLES, number>> = {
-  'gpt-4o': { hello: 2, unicode: 8, code: 13 },
   'o200k-harmony': { hello: 2, unicode: 8, code: 13 },
-  'gemma-4': { hello: 2, unicode: 8, code: 14 }
+  'gemma-4': { hello: 2, unicode: 8, code: 14 },
+  'deepseek-v4': { hello: 2, unicode: 8, code: 13 }
 };
 
 describe('bundled tokenizers', () => {
@@ -58,14 +58,14 @@ describe('bundled tokenizers', () => {
   it('derives offsets that cover each token of plain text', async () => {
     const service = new TokenizerService();
 
-    const result = await service.tokenize(path.join(bundledRoot, 'gpt-4o'), 'Hello World');
+    const result = await service.tokenize(path.join(bundledRoot, 'o200k-harmony'), 'Hello World');
 
     expect(result.offsets).toEqual([[0, 5], [5, 11]]);
   });
 
   it('handles empty text and keeps offsets well-formed for non-ASCII text', async () => {
     const service = new TokenizerService();
-    const directory = path.join(bundledRoot, 'gpt-4o');
+    const directory = path.join(bundledRoot, 'o200k-harmony');
 
     await expect(service.tokenize(directory, '')).resolves.toEqual({ count: 0, offsets: [], multiTokenChars: [] });
 
@@ -79,9 +79,9 @@ describe('bundled tokenizers', () => {
 
   it('flags emoji that byte-level BPE splits across tokens, with the number of tokens each spans', async () => {
     const service = new TokenizerService();
-    const directory = path.join(bundledRoot, 'gpt-4o');
+    const directory = path.join(bundledRoot, 'o200k-harmony');
 
-    // gpt-4o: "a" + two byte tokens for the rocket + "b".
+    // o200k_harmony: "a" + two byte tokens for the rocket + "b".
     await expect(service.tokenize(directory, 'a🚀b')).resolves.toEqual({
       count: 4,
       offsets: [[0, 1], [3, 4]],

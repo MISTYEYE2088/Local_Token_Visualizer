@@ -11,7 +11,7 @@ describe('readLocalTokenizerConfig', () => {
     const config = {
       get<T>(key: string, fallback: T): T {
         const values: Record<string, unknown> = {
-          modelPath: 'C:\\models\\llama-tokenizer',
+          modelPath: 'C:\\models\\custom-tokenizer',
           enableHighlighting: false
         };
         return (values[key] ?? fallback) as T;
@@ -19,10 +19,10 @@ describe('readLocalTokenizerConfig', () => {
     };
 
     expect(readLocalTokenizerConfig(config)).toEqual({
-      modelPath: 'C:\\models\\llama-tokenizer',
+      modelPath: 'C:\\models\\custom-tokenizer',
       enableHighlighting: false,
       showSplitCharCount: true,
-      model: 'gpt-4o'
+      model: 'o200k-harmony'
     });
   });
 
@@ -37,7 +37,7 @@ describe('readLocalTokenizerConfig', () => {
       modelPath: 'C:\\models\\qwen',
       enableHighlighting: true,
       showSplitCharCount: true,
-      model: 'gpt-4o'
+      model: 'o200k-harmony'
     });
   });
 
@@ -48,8 +48,8 @@ describe('readLocalTokenizerConfig', () => {
       }
     });
 
-    expect(readLocalTokenizerConfig(withModel(' Qwen/Qwen2.5-0.5B ')).model).toBe('Qwen/Qwen2.5-0.5B');
-    expect(readLocalTokenizerConfig(withModel('   ')).model).toBe('gpt-4o');
+    expect(readLocalTokenizerConfig(withModel(' Qwen/Qwen3.8-27B ')).model).toBe('Qwen/Qwen3.8-27B');
+    expect(readLocalTokenizerConfig(withModel('   ')).model).toBe('o200k-harmony');
   });
 });
 

@@ -2,6 +2,8 @@ import catalogJson from './catalog.json';
 
 export interface CatalogEntry {
   id: string;
+  /** Older ids that still resolve to this entry, so saved settings keep working. */
+  aliases?: string[];
   label: string;
   vendor: string;
   repo: string;
@@ -19,7 +21,12 @@ export const DEFAULT_MODEL_ID: string = catalogJson.defaultModel;
 const HF_REPO_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
 export function findCatalogEntry(model: string): CatalogEntry | undefined {
-  return CATALOG.find((entry) => entry.id === model);
+  return CATALOG.find((entry) => entry.id === model || entry.aliases?.includes(model));
+}
+
+/** The current catalog id for an alias such as `gpt-4o`; other ids are returned unchanged. */
+export function canonicalModelId(model: string): string {
+  return findCatalogEntry(model)?.id ?? model;
 }
 
 export function isHuggingFaceRepoId(value: string): boolean {
@@ -32,7 +39,7 @@ export function isValidModelId(value: string): boolean {
 
 /** Folder name used on disk for a catalog id or Hugging Face repo id. */
 export function slugForModel(model: string): string {
-  return model.replace('/', '--');
+  return canonicalModelId(model).replace('/', '--');
 }
 
 export function labelForModel(model: string): string {

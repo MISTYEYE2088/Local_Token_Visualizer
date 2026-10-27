@@ -100,9 +100,9 @@ describe('StatusBarController tokenizer menu', () => {
   it('names the tokenizer and links to the picker in the tooltip', () => {
     const controller = new StatusBarController(TOGGLE_COMMAND, SELECT_COMMAND);
 
-    controller.update({ kind: 'count', count: 5, tokenizer: 'GPT-4o (o200k_base)' });
+    controller.update({ kind: 'count', count: 5, tokenizer: 'OpenAI GPT (o200k_harmony)' });
 
-    expect(markdown().value).toContain('**Tokenizer:** GPT\\-4o \\(o200k\\_base\\)');
+    expect(markdown().value).toContain('**Tokenizer:** OpenAI GPT \\(o200k\\_harmony\\)');
     expect(markdown().value).toContain(`(command:${SELECT_COMMAND})`);
     expect(markdown().value).toContain(`(command:${TOGGLE_COMMAND})`);
     expect(markdown().isTrusted.enabledCommands).toEqual([TOGGLE_COMMAND, SELECT_COMMAND]);

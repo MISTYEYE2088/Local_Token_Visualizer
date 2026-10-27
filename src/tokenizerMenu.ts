@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CATALOG, isHuggingFaceRepoId, labelForModel, findCatalogEntry } from './catalog';
+import { CATALOG, canonicalModelId, isHuggingFaceRepoId, labelForModel, findCatalogEntry } from './catalog';
 import { buildPickerRows, type PickerAction } from './modelPicker';
 import { TokenizerDownloadError, type TokenizerStore } from './tokenizerStore';
 
@@ -21,7 +21,7 @@ export class TokenizerMenu {
   /** Opens the tokenizer picker. */
   async show(): Promise<void> {
     const config = vscode.workspace.getConfiguration('localTokenizer');
-    const current = config.get<string>('model', '');
+    const current = canonicalModelId(config.get<string>('model', ''));
     const usingCustomFolder = config.get<string>('modelPath', '').trim().length > 0;
 
     const availability = new Map<string, boolean>();
@@ -107,9 +107,9 @@ export class TokenizerMenu {
         const repo = await vscode.window.showInputBox({
           title: 'Hugging Face model ID',
           prompt: 'Enter owner/name. The repository must contain a tokenizer.json.',
-          placeHolder: 'mistralai/Mistral-7B-v0.1',
+          placeHolder: 'mistralai/Ministral-3-3B-Instruct-2512',
           validateInput: (value) =>
-            isHuggingFaceRepoId(value.trim()) ? undefined : 'Use the form owner/name, for example Qwen/Qwen2.5-0.5B'
+            isHuggingFaceRepoId(value.trim()) ? undefined : 'Use the form owner/name, for example Qwen/Qwen3.8-27B'
         });
         if (repo) {
           return this.select(repo.trim());

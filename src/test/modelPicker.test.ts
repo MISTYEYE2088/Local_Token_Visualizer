@@ -7,7 +7,7 @@ function state(overrides: Partial<PickerState> = {}): PickerState {
     catalog: CATALOG,
     isAvailable: (model) => CATALOG.find((entry) => entry.id === model)?.bundled ?? false,
     customDownloads: [],
-    current: 'gpt-4o',
+    current: 'o200k-harmony',
     usingCustomFolder: false,
     ...overrides
   };
@@ -36,14 +36,14 @@ describe('buildPickerRows', () => {
 
   it('marks the current tokenizer and labels download rows', () => {
     const rows = buildPickerRows(state());
-    const current = rows.find((row) => row.action?.type === 'model' && row.action.model === 'gpt-4o')!;
-    const llama = rows.find((row) => row.action?.type === 'model' && row.action.model === 'llama-3')!;
+    const current = rows.find((row) => row.action?.type === 'model' && row.action.model === 'o200k-harmony')!;
+    const qwen = rows.find((row) => row.action?.type === 'model' && row.action.model === 'qwen-3.8')!;
     const gemma = rows.find((row) => row.action?.type === 'model' && row.action.model === 'gemma-4')!;
 
     expect(current.label).toContain('$(check)');
     expect(current.description).toContain('built in');
-    expect(llama.label).toContain('$(cloud-download)');
-    expect(llama.description).toContain('Meta');
+    expect(qwen.label).toContain('$(cloud-download)');
+    expect(qwen.description).toContain('Alibaba');
     expect(gemma.description).toContain('built in');
     expect(gemma.detail).toContain('Gemini');
   });
@@ -52,7 +52,7 @@ describe('buildPickerRows', () => {
     const rows = buildPickerRows(state({ isAvailable: () => true }));
 
     expect(rows.some((row) => row.separator && row.label === 'Download from Hugging Face')).toBe(false);
-    expect(rows.find((row) => row.action?.type === 'model' && row.action.model === 'llama-3')?.description).toContain(
+    expect(rows.find((row) => row.action?.type === 'model' && row.action.model === 'qwen-3.8')?.description).toContain(
       'downloaded'
     );
   });
