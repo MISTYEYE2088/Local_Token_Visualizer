@@ -175,7 +175,7 @@ export class TokenizerMenu {
             await this.store.download(
               model,
               ({ file, receivedBytes, totalBytes }) => {
-                if (file !== 'tokenizer.json' || !totalBytes) {
+                if ((file !== 'tokenizer.json' && file !== 'tiktoken.model') || !totalBytes) {
                   return;
                 }
                 const percent = Math.floor((receivedBytes / totalBytes) * 100);

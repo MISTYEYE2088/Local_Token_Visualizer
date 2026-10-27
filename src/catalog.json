@@ -3,7 +3,9 @@
   "tokenizers": [
     {
       "id": "o200k-harmony",
-      "aliases": ["gpt-4o"],
+      "aliases": [
+        "gpt-4o"
+      ],
       "label": "OpenAI GPT (o200k_harmony)",
       "vendor": "OpenAI",
       "repo": "openai/gpt-oss-20b",
@@ -48,6 +50,18 @@
       "license": "Apache-2.0"
     },
     {
+      "id": "kimi-k3",
+      "label": "Kimi K3",
+      "vendor": "Moonshot",
+      "repo": "moonshotai/Kimi-K3",
+      "revision": "f831ab66814297da540d832a5235f8e904f29d06",
+      "bundled": false,
+      "description": "Kimi K2.6, K2.7 Code and K3",
+      "license": "Kimi K3 license",
+      "note": "Moonshot publishes this as a tiktoken file; it is converted to tokenizer.json when downloaded.",
+      "tiktokenPattern": "[\\p{Han}]+|[^\\r\\n\\p{L}\\p{N}]?[\\p{Lu}\\p{Lt}\\p{Lm}\\p{Lo}\\p{M}&&[^\\p{Han}]]*[\\p{Ll}\\p{Lm}\\p{Lo}\\p{M}&&[^\\p{Han}]]+(?i:'s|'t|'re|'ve|'m|'ll|'d)?|[^\\r\\n\\p{L}\\p{N}]?[\\p{Lu}\\p{Lt}\\p{Lm}\\p{Lo}\\p{M}&&[^\\p{Han}]]+[\\p{Ll}\\p{Lm}\\p{Lo}\\p{M}&&[^\\p{Han}]]*(?i:'s|'t|'re|'ve|'m|'ll|'d)?|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+"
+    },
+    {
       "id": "glm-5",
       "label": "GLM 5.3",
       "vendor": "Z.ai",
@@ -56,6 +70,28 @@
       "bundled": false,
       "description": "GLM 5.1, 5.2 and 5.3",
       "license": "GLM-5.3 license"
+    },
+    {
+      "id": "muse-spark",
+      "label": "Muse Spark Open",
+      "vendor": "Meta",
+      "repo": "unsloth/Muse-Spark-Open-816B-A42B",
+      "revision": "49cade7b0c6ed297f0434229ac67eea5f9ae1220",
+      "bundled": false,
+      "description": "Muse Spark Open",
+      "license": "Muse model license",
+      "note": "Meta's own repository is gated, so this uses an ungated mirror whose tokenizer is byte-identical to a second mirror's. Meta's closed Muse models may differ."
+    },
+    {
+      "id": "grok-2",
+      "label": "Grok 2",
+      "vendor": "xAI",
+      "repo": "alvarobartt/grok-2-tokenizer",
+      "revision": "3616abf9e105e26f992891af8853ba36238bd450",
+      "bundled": false,
+      "description": "Grok 2, xAI's newest public tokenizer",
+      "license": "Grok 2 license",
+      "note": "Community conversion of xAI's tokenizer.tok.json; the vocabulary matches xAI's file exactly, but the word-splitting rule is a reconstruction. Newer Grok models may differ, so counts are approximate."
     },
     {
       "id": "mimo-v2.6",
@@ -86,6 +122,17 @@
       "bundled": false,
       "description": "Mistral Small 4 (other Mistral models use different tokenizers)",
       "license": "Apache-2.0"
+    },
+    {
+      "id": "llama-4",
+      "label": "Llama 4",
+      "vendor": "Meta",
+      "repo": "unsloth/Llama-4-Scout-17B-16E-Instruct",
+      "revision": "afd8e498c87bda51c7ea8ec68ea2f7c066e6340b",
+      "bundled": false,
+      "description": "Llama 4 Scout and Maverick",
+      "license": "Llama 4 Community License",
+      "note": "Meta's own repository is gated, so this uses an ungated mirror (Scout and Maverick mirrors are byte-identical)."
     }
   ]
 }

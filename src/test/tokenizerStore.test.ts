@@ -153,6 +153,57 @@ describe('TokenizerStore', () => {
       await expect(good.resolve('acme/model')).resolves.toMatchObject({ source: 'downloaded' });
     });
 
+    describe('tiktoken-only tokenizers', () => {
+      const b64 = (text: string): string => Buffer.from(text, 'latin1').toString('base64');
+      const RANK_FILE =
+        [...Array.from({ length: 256 }, (_, byte) => `${b64(String.fromCharCode(byte))} ${byte}`), `${b64('he')} 256`].join('\n') +
+        '\n';
+      const CONFIG = JSON.stringify({
+        added_tokens_decoder: { '257': { content: '[EOS]', special: true }, bad: { content: 'x' } }
+      });
+
+      it('downloads the rank file at the pinned revision and stores a converted tokenizer.json', async () => {
+        const entry = findCatalogEntry('kimi-k3')!;
+        const fetchImpl = vi.fn<FetchLike>(async (url) =>
+          url.endsWith('tiktoken.model') ? response(200, RANK_FILE) : response(200, CONFIG)
+        );
+        const progress = vi.fn();
+        const store = new TokenizerStore(bundledRoot, downloadRoot, fetchImpl);
+
+        const result = await store.download('kimi-k3', progress);
+
+        expect(fetchImpl.mock.calls.map(([url]) => url)).toEqual([
+          `https://huggingface.co/${entry.repo}/resolve/${entry.revision}/tiktoken.model`,
+          `https://huggingface.co/${entry.repo}/resolve/${entry.revision}/tokenizer_config.json`
+        ]);
+        expect(progress).toHaveBeenCalledWith(expect.objectContaining({ file: 'tiktoken.model' }));
+        expect(await fs.readdir(result.path)).toEqual(['tokenizer.json']);
+
+        const converted = JSON.parse(await fs.readFile(path.join(result.path, 'tokenizer.json'), 'utf8'));
+        expect(converted.model.vocab['he']).toBe(256);
+        expect(converted.model.merges).toEqual(['h e']);
+        expect(converted.added_tokens).toEqual([expect.objectContaining({ id: 257, content: '[EOS]', special: true })]);
+        await expect(store.resolve('kimi-k3')).resolves.toMatchObject({ source: 'downloaded' });
+      });
+
+      it('works without a tokenizer_config.json', async () => {
+        const store = new TokenizerStore(bundledRoot, downloadRoot, async (url) =>
+          url.endsWith('tiktoken.model') ? response(200, RANK_FILE) : response(404)
+        );
+
+        await expect(store.download('kimi-k3')).resolves.toMatchObject({ source: 'downloaded' });
+      });
+
+      it('reports an unusable rank file as a download error and leaves nothing behind', async () => {
+        const store = new TokenizerStore(bundledRoot, downloadRoot, async (url) =>
+          url.endsWith('tiktoken.model') ? response(200, 'garbage') : response(404)
+        );
+
+        await expect(store.download('kimi-k3')).rejects.toThrow(/Could not convert the tokenizer/);
+        expect(await fs.readdir(downloadRoot)).toEqual([]);
+      });
+    });
+
     it('refuses invalid model ids without touching the network', async () => {
       const fetchImpl = vi.fn<FetchLike>();
       const store = new TokenizerStore(bundledRoot, downloadRoot, fetchImpl);

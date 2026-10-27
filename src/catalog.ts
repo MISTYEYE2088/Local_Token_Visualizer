@@ -12,6 +12,11 @@ export interface CatalogEntry {
   description: string;
   license: string;
   note?: string;
+  /**
+   * Set for tokenizers published only as a tiktoken rank file (`tiktoken.model`): the word-splitting regex
+   * used to convert it to a tokenizer.json when it is downloaded.
+   */
+  tiktokenPattern?: string;
   sha256?: string;
 }
 

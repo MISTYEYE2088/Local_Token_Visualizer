@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { isValidModelId, findCatalogEntry, isHuggingFaceRepoId, slugForModel } from './catalog';
+import { isValidModelId, findCatalogEntry, isHuggingFaceRepoId, slugForModel, type CatalogEntry } from './catalog';
+import { convertTiktokenToTokenizerJson, TiktokenFormatError, type TiktokenAddedToken } from './tiktokenConverter';
 
 export type TokenizerSource = 'bundled' | 'downloaded';
 
@@ -95,9 +96,13 @@ export class TokenizerStore {
     await fs.mkdir(staging, { recursive: true });
 
     try {
-      await this.fetchToFile(repo, revision, 'tokenizer.json', staging, false, onProgress, signal);
-      await this.assertLooksLikeTokenizer(path.join(staging, 'tokenizer.json'), repo);
-      await this.fetchToFile(repo, revision, 'tokenizer_config.json', staging, true, onProgress, signal);
+      if (entry?.tiktokenPattern) {
+        await this.downloadTiktoken(entry, entry.tiktokenPattern, staging, onProgress, signal);
+      } else {
+        await this.fetchToFile(repo, revision, 'tokenizer.json', staging, false, onProgress, signal);
+        await this.assertLooksLikeTokenizer(path.join(staging, 'tokenizer.json'), repo);
+        await this.fetchToFile(repo, revision, 'tokenizer_config.json', staging, true, onProgress, signal);
+      }
 
       await fs.rm(destination, { recursive: true, force: true });
       await fs.rename(staging, destination);
@@ -106,6 +111,38 @@ export class TokenizerStore {
     }
 
     return { path: destination, source: 'downloaded' };
+  }
+
+  /** Fetches a tiktoken rank file and stores it as the tokenizer.json the rest of the extension reads. */
+  private async downloadTiktoken(
+    entry: CatalogEntry,
+    pattern: string,
+    directory: string,
+    onProgress: ((progress: DownloadProgress) => void) | undefined,
+    signal: AbortSignal | undefined
+  ): Promise<void> {
+    const { repo, revision } = entry;
+    await this.fetchToFile(repo, revision, 'tiktoken.model', directory, false, onProgress, signal);
+    await this.fetchToFile(repo, revision, 'tokenizer_config.json', directory, true, onProgress, signal);
+
+    const rankFile = await fs.readFile(path.join(directory, 'tiktoken.model'), 'utf8');
+    const config = await readOptionalJson(path.join(directory, 'tokenizer_config.json'));
+    try {
+      const converted = await convertTiktokenToTokenizerJson(rankFile, {
+        pattern,
+        addedTokens: addedTokensOf(config)
+      });
+      await fs.writeFile(path.join(directory, 'tokenizer.json'), JSON.stringify(converted));
+    } catch (error) {
+      if (error instanceof TiktokenFormatError) {
+        throw new TokenizerDownloadError(`Could not convert the tokenizer from "${repo}": ${error.message}`);
+      }
+      throw error;
+    }
+
+    // The converted tokenizer.json is self-contained; the originals are not needed once it exists.
+    await fs.rm(path.join(directory, 'tiktoken.model'), { force: true });
+    await fs.rm(path.join(directory, 'tokenizer_config.json'), { force: true });
   }
 
   private async fetchToFile(
@@ -173,6 +210,31 @@ export class TokenizerStore {
       throw new TokenizerDownloadError(`The tokenizer.json downloaded from "${repo}" is not a Hugging Face tokenizer.`);
     }
   }
+}
+
+async function readOptionalJson(filePath: string): Promise<Record<string, unknown>> {
+  try {
+    const parsed: unknown = JSON.parse(await fs.readFile(filePath, 'utf8'));
+    return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Special tokens listed in a Hugging Face tokenizer_config.json (`added_tokens_decoder`). */
+function addedTokensOf(config: Record<string, unknown>): TiktokenAddedToken[] {
+  const decoder = config.added_tokens_decoder;
+  if (typeof decoder !== 'object' || decoder === null) {
+    return [];
+  }
+
+  const tokens: TiktokenAddedToken[] = [];
+  for (const [id, value] of Object.entries(decoder as Record<string, { content?: unknown; special?: unknown }>)) {
+    if (Number.isInteger(Number(id)) && typeof value?.content === 'string') {
+      tokens.push({ id: Number(id), content: value.content, special: value.special === true });
+    }
+  }
+  return tokens;
 }
 
 async function fileExists(filePath: string): Promise<boolean> {

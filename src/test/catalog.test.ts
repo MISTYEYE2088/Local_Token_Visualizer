@@ -46,6 +46,24 @@ describe('catalog', () => {
     ]);
   });
 
+  it('covers the closed-weight vendors that publish a usable tokenizer, as downloads only', () => {
+    for (const id of ['kimi-k3', 'grok-2', 'muse-spark', 'llama-4']) {
+      const entry = findCatalogEntry(id);
+      expect(entry, id).toBeDefined();
+      expect(entry?.bundled, id).toBe(false);
+    }
+  });
+
+  it('gives a conversion pattern to tiktoken-only entries and no one else', () => {
+    expect(CATALOG.filter((entry) => entry.tiktokenPattern).map((entry) => entry.id)).toEqual(['kimi-k3']);
+  });
+
+  it('explains where mirrored or converted tokenizers come from', () => {
+    for (const id of ['grok-2', 'muse-spark', 'llama-4']) {
+      expect(findCatalogEntry(id)?.note, id).toMatch(/mirror|conversion/i);
+    }
+  });
+
   it('keeps old saved ids working through aliases without clashing with other ids', () => {
     expect(findCatalogEntry('gpt-4o')?.id).toBe('o200k-harmony');
     expect(canonicalModelId('gpt-4o')).toBe('o200k-harmony');

@@ -2,7 +2,7 @@
 // Downloads tokenizer files from Hugging Face into ./tokenizers/<id>/.
 //
 //   node scripts/fetch-tokenizers.mjs            fetch every bundled tokenizer in src/catalog.json
-//   node scripts/fetch-tokenizers.mjs --all      fetch every catalog entry
+//   node scripts/fetch-tokenizers.mjs --all      fetch every catalog entry that publishes a tokenizer.json
 //   node scripts/fetch-tokenizers.mjs gpt-4o     fetch specific catalog ids
 //
 // Each entry is pinned to a commit in src/catalog.json. Bundled entries are also
@@ -64,6 +64,10 @@ async function isUpToDate(entry, dir) {
 }
 
 for (const entry of wanted) {
+  if (entry.tiktokenPattern) {
+    console.log(`skipped  ${entry.id} (tiktoken file; the extension converts it to tokenizer.json when it is downloaded)`);
+    continue;
+  }
   const dir = path.join(outRoot, entry.id);
   if (await isUpToDate(entry, dir)) {
     console.log(`ok       ${entry.id} (already present)`);

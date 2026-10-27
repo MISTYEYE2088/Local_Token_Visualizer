@@ -26,7 +26,7 @@
         "localTokenizer.model": {
           "type": "string",
           "default": "o200k-harmony",
-          "markdownDescription": "Tokenizer to use: a built-in or downloadable id such as `o200k-harmony`, `gemma-4`, `deepseek-v4`, `qwen-3.8`, `glm-5`, `mimo-v2.6`, `minimax-m2`, `mistral-small-4`, or any Hugging Face repository id like `Qwen/Qwen3.8-27B`. Use **Local Token Visualizer: Select Tokenizer** to choose from a menu instead of typing."
+          "markdownDescription": "Tokenizer to use: a built-in or downloadable id such as `o200k-harmony`, `gemma-4`, `deepseek-v4`, `qwen-3.8`, `kimi-k3`, `glm-5`, `muse-spark`, `grok-2`, `mimo-v2.6`, `minimax-m2`, `mistral-small-4`, `llama-4`, or any Hugging Face repository id like `Qwen/Qwen3.8-27B`. Use **Local Token Visualizer: Select Tokenizer** to choose from a menu instead of typing."
         },
         "localTokenizer.modelPath": {
           "type": "string",
