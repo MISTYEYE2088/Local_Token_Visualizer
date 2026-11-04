@@ -5,6 +5,7 @@ import { nextHighlightSettings, readLocalTokenizerConfig, type LocalTokenizerCon
 import { TokenVisualizerController, DEFAULT_SMALL_FILE_THRESHOLD } from './controller';
 import { Debouncer } from './debounce';
 import { DecorationManager } from './decorations';
+import { resolveEditor } from './editorResolver';
 import { createRefreshScheduler } from './refreshScheduler';
 import { StatusBarController } from './statusBar';
 import { TokenizerMenu, SELECT_MODEL_PATH_COMMAND, SELECT_TOKENIZER_COMMAND } from './tokenizerMenu';
@@ -39,13 +40,18 @@ export function activate(context: vscode.ExtensionContext): void {
     DEFAULT_SMALL_FILE_THRESHOLD
   );
 
+  // A Markdown preview has no text editor, so activeTextEditor is undefined while it has focus.
+  let lastActiveEditor = vscode.window.activeTextEditor;
+  const currentEditor = (): vscode.TextEditor | undefined =>
+    resolveEditor(vscode.window.activeTextEditor, lastActiveEditor, vscode.window.visibleTextEditors);
+
   const menu = new TokenizerMenu(store, () => {
     tokenizerService.reset();
-    scheduleRefresh(vscode.window.activeTextEditor);
+    scheduleRefresh(currentEditor());
   });
 
   const scheduleRefresh = createRefreshScheduler<vscode.TextEditor>({
-    getActiveEditor: () => vscode.window.activeTextEditor,
+    getActiveEditor: currentEditor,
     getTextLength: (editor) => editor.document.getText().length,
     refresh: (editor) => void controller.refresh(editor),
     debouncer,
@@ -56,17 +62,23 @@ export function activate(context: vscode.ExtensionContext): void {
     statusBar,
     decorations,
     debouncer,
-    vscode.window.onDidChangeActiveTextEditor((editor) => scheduleRefresh(editor)),
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (editor) {
+        lastActiveEditor = editor;
+      }
+      scheduleRefresh(editor ?? currentEditor());
+    }),
     vscode.window.onDidChangeTextEditorVisibleRanges((event) => scheduleRefresh(event.textEditor)),
     vscode.workspace.onDidChangeTextDocument((event) => {
-      if (vscode.window.activeTextEditor?.document === event.document) {
-        scheduleRefresh(vscode.window.activeTextEditor);
+      const editor = currentEditor();
+      if (editor?.document === event.document) {
+        scheduleRefresh(editor);
       }
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('localTokenizer')) {
         tokenizerService.reset();
-        scheduleRefresh(vscode.window.activeTextEditor);
+        scheduleRefresh(currentEditor());
       }
     }),
     vscode.commands.registerCommand(TOGGLE_COMMAND, async () => {
@@ -79,7 +91,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand(SELECT_MODEL_PATH_COMMAND, () => menu.browseForFolder())
   );
 
-  scheduleRefresh(vscode.window.activeTextEditor);
+  scheduleRefresh(currentEditor());
   void menu.ensureCurrentModel();
 }
 
